@@ -1,4 +1,5 @@
-enum Category {
+#[derive(PartialEq, Show)]
+pub enum Category {
     Identifier,
     AssignmentOperator,
     IntegerLiteral,
