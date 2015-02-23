@@ -1,12 +1,15 @@
 #[derive(PartialEq, Show)]
 pub enum Category {
+    Whitespace,
     Identifier,
+    Brace,
+    Parenthesis,
     AssignmentOperator,
     IntegerLiteral,
     StringLiteral,
 }
 
 pub struct Token {
-    lexeme: String,
-    category: Category,
+    pub lexeme: String,
+    pub category: Category,
 }
