@@ -49,6 +49,7 @@ pub fn new(data: &str, initial_state: StateFunction) -> Lexer {
 mod tests {
     use super::new;
     use super::formats;
+    use super::Token;
     use super::Category;
     use super::StateFunction;
 
@@ -60,7 +61,6 @@ mod tests {
             tokens.push(token);
         }
 
-        assert_eq!(tokens.first().unwrap().lexeme, "{");
-        assert_eq!(tokens.first().unwrap().category, Category::Brace);
+        assert_eq!(tokens, vec![Token{ lexeme: "{".to_string(), category: Category::Brace }]);
     }
 }

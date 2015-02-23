@@ -9,6 +9,7 @@ pub enum Category {
     StringLiteral,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct Token {
     pub lexeme: String,
     pub category: Category,
