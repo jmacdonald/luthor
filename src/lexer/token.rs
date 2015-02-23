@@ -1,4 +1,4 @@
-#[derive(PartialEq, Show)]
+#[derive(PartialEq, Debug)]
 pub enum Category {
     Whitespace,
     Identifier,
