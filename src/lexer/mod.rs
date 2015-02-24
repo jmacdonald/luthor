@@ -5,7 +5,7 @@ pub mod token;
 pub mod formats;
 
 pub struct StateFunction {
-    f: fn(&str, &mut Vec<Token>) -> Option<StateFunction>,
+    f: fn(&mut Lexer) -> Option<StateFunction>,
 }
 
 pub struct Lexer {
@@ -21,15 +21,17 @@ impl Iterator for Lexer {
 
     fn next(&mut self) -> Option<Token> {
         loop {
-            self.token_position += 1;
-            let potential_token = self.data.slice(self.token_start, self.token_position);
-            match (self.state_function.f)(potential_token, &mut self.tokens) {
+            match (self.state_function.f)(self) {
                 Some(f) => {
                     self.state_function = f;
 
                     match self.tokens.pop() {
                         Some(t) => {
-                            self.token_start = self.token_position;
+                            // A token has been generated. Move the
+                            // start and position indices past its
+                            // position, and return the token.
+                            self.token_start += t.lexeme.len();
+                            self.token_position = self.token_start;
                             return Some(t)
                         },
                         None => continue,
