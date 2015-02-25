@@ -2,7 +2,7 @@ pub use self::token::Token;
 pub use self::token::Category;
 
 pub mod token;
-pub mod formats;
+pub mod implementations;
 
 pub struct StateFunction {
     f: fn(&mut Lexer) -> Option<StateFunction>,
@@ -50,14 +50,14 @@ pub fn new(data: &str, initial_state: StateFunction) -> Lexer {
 
 mod tests {
     use super::new;
-    use super::formats;
+    use super::implementations;
     use super::Token;
     use super::Category;
     use super::StateFunction;
 
     #[test]
     fn it_works() {
-        let mut lexer = new("{ \"villain\": \"luthor\" }", StateFunction{ f: formats::json::initial_state });
+        let mut lexer = new("{ \"villain\": \"luthor\" }", StateFunction{ f: implementations::json::initial_state });
         let mut tokens = vec![];
         for token in lexer {
             tokens.push(token);
