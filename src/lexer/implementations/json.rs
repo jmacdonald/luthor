@@ -10,19 +10,11 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
             lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Brace });
             lexer.token_start += 1;
             lexer.token_position += 1;
-            Some(StateFunction(inside_object))
+            Some(StateFunction(initial_state))
         },
-        _ => None
-    }
-}
-
-fn inside_object(lexer: &mut Lexer) -> Option<StateFunction> {
-    match lexer.data.char_at(lexer.token_position) {
-        ' ' => {
-            lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Whitespace });
-            lexer.token_start += 1;
+        ' ' | '\n' => {
             lexer.token_position += 1;
-            Some(StateFunction(inside_object))
+            Some(StateFunction(whitespace))
         },
         '"' => {
             lexer.token_position += 1;
@@ -32,7 +24,7 @@ fn inside_object(lexer: &mut Lexer) -> Option<StateFunction> {
             lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::AssignmentOperator });
             lexer.token_start += 1;
             lexer.token_position += 1;
-            Some(StateFunction(inside_object))
+            Some(StateFunction(initial_state))
         },
         '}' => {
             lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Brace });
@@ -48,11 +40,25 @@ fn inside_string(lexer: &mut Lexer) -> Option<StateFunction> {
             lexer.token_position += 1;
             lexer.tokens.push(Token{ lexeme: lexer.data.slice_chars(lexer.token_start, lexer.token_position).to_string(), category: Category::StringLiteral });
             lexer.token_start = lexer.token_position;
-            Some(StateFunction(inside_object))
+            Some(StateFunction(initial_state))
         },
         _ => {
             lexer.token_position += 1;
             Some(StateFunction(inside_string))
+        }
+    }
+}
+
+fn whitespace(lexer: &mut Lexer) -> Option<StateFunction> {
+    match lexer.data.char_at(lexer.token_position) {
+        ' ' | '\n' => {
+            lexer.token_position += 1;
+            Some(StateFunction(whitespace))
+        },
+        _ => {
+            lexer.tokens.push(Token{ lexeme: lexer.data.slice_chars(lexer.token_start, lexer.token_position).to_string(), category: Category::Whitespace });
+            lexer.token_start = lexer.token_position;
+            Some(StateFunction(initial_state))
         }
     }
 }
@@ -76,15 +82,15 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let tokens = lex("{ \"villain\": \"luthor\" }");
+        let tokens = lex("{\n  \"villain\": \"luthor\"\n}");
         let expected_tokens = vec![
             Token{ lexeme: "{".to_string(), category: Category::Brace },
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "\"villain\"".to_string(), category: Category::StringLiteral },
             Token{ lexeme: ":".to_string(), category: Category::AssignmentOperator },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "\"luthor\"".to_string(), category: Category::StringLiteral },
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
             Token{ lexeme: "}".to_string(), category: Category::Brace },
         ];
 
