@@ -2,11 +2,16 @@
 pub enum Category {
     Whitespace,
     Identifier,
+    Keyword,
     Brace,
+    Bracket,
     Parenthesis,
     AssignmentOperator,
-    IntegerLiteral,
-    StringLiteral,
+    Integer,
+    Float,
+    String,
+    Boolean,
+    Text,
 }
 
 #[derive(PartialEq, Debug)]

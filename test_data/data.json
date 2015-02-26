@@ -1,0 +1,9 @@
+{
+  "key": "4032",
+  'single': 'quotes\'',
+  "literals": [
+    true,
+    false,
+    null
+  ]
+}
