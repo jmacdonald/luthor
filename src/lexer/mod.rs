@@ -23,3 +23,18 @@ pub fn new(data: &str) -> Lexer {
       tokens: vec![]
     }
 }
+
+mod tests {
+    use super::new;
+
+    #[test]
+    fn new_initializes_correctly() {
+        let lexer_data = "lexer data";
+        let lexer = new(lexer_data);
+        assert_eq!(lexer.data, lexer_data);
+        assert_eq!(lexer.char_count, 10);
+        assert_eq!(lexer.token_start, 0);
+        assert_eq!(lexer.token_position, 0);
+        assert_eq!(lexer.tokens, vec![]);
+    }
+}
