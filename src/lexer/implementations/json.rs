@@ -6,15 +6,7 @@ use lexer::Category;
 
 fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
     if lexer.token_position >= lexer.char_count {
-        // There was uncategorized text before this; pass it along
-        if lexer.token_position != lexer.token_start {
-            lexer.tokens.push(Token{
-                lexeme: lexer.data.slice_chars(lexer.token_start,
-                    lexer.token_position).to_string(),
-                category: Category::Text
-            });
-            lexer.token_start = lexer.token_position;
-        }
+        lexer.tokenize(Category::Text);
 
         return None;
     }
@@ -22,15 +14,7 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
     // TODO: Replace char_at with something UTF8 compatible.
     match lexer.data.char_at(lexer.token_position) {
         '{' => {
-            // There was uncategorized text before this; pass it along
-            if lexer.token_position != lexer.token_start {
-                lexer.tokens.push(Token{
-                    lexeme: lexer.data.slice_chars(lexer.token_start,
-                        lexer.token_position).to_string(),
-                    category: Category::Text
-                });
-                lexer.token_start = lexer.token_position;
-            }
+            lexer.tokenize(Category::Text);
 
             lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Brace });
             lexer.token_start += 1;
@@ -38,15 +22,7 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
             Some(StateFunction(initial_state))
         },
         '[' => {
-            // There was uncategorized text before this; pass it along
-            if lexer.token_position != lexer.token_start {
-                lexer.tokens.push(Token{
-                    lexeme: lexer.data.slice_chars(lexer.token_start,
-                        lexer.token_position).to_string(),
-                    category: Category::Text
-                });
-                lexer.token_start = lexer.token_position;
-            }
+            lexer.tokenize(Category::Text);
 
             lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Bracket });
             lexer.token_start += 1;
@@ -54,43 +30,19 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
             Some(StateFunction(initial_state))
         },
         ' ' | '\n' => {
-            // There was uncategorized text before this; pass it along
-            if lexer.token_position != lexer.token_start {
-                lexer.tokens.push(Token{
-                    lexeme: lexer.data.slice_chars(lexer.token_start,
-                        lexer.token_position).to_string(),
-                    category: Category::Text
-                });
-                lexer.token_start = lexer.token_position;
-            }
+            lexer.tokenize(Category::Text);
 
             lexer.token_position += 1;
             Some(StateFunction(whitespace))
         },
         '"' => {
-            // There was uncategorized text before this; pass it along
-            if lexer.token_position != lexer.token_start {
-                lexer.tokens.push(Token{
-                    lexeme: lexer.data.slice_chars(lexer.token_start,
-                        lexer.token_position).to_string(),
-                    category: Category::Text
-                });
-                lexer.token_start = lexer.token_position;
-            }
+            lexer.tokenize(Category::Text);
 
             lexer.token_position += 1;
             Some(StateFunction(inside_string))
         },
         ':' => {
-            // There was uncategorized text before this; pass it along
-            if lexer.token_position != lexer.token_start {
-                lexer.tokens.push(Token{
-                    lexeme: lexer.data.slice_chars(lexer.token_start,
-                        lexer.token_position).to_string(),
-                    category: Category::Text
-                });
-                lexer.token_start = lexer.token_position;
-            }
+            lexer.tokenize(Category::Text);
 
             lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::AssignmentOperator });
             lexer.token_start += 1;
@@ -98,29 +50,13 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
             Some(StateFunction(initial_state))
         },
         '}' => {
-            // There was uncategorized text before this; pass it along
-            if lexer.token_position != lexer.token_start {
-                lexer.tokens.push(Token{
-                    lexeme: lexer.data.slice_chars(lexer.token_start,
-                        lexer.token_position).to_string(),
-                    category: Category::Text
-                });
-                lexer.token_start = lexer.token_position;
-            }
+            lexer.tokenize(Category::Text);
 
             lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Brace });
             None
         },
         ']' => {
-            // There was uncategorized text before this; pass it along
-            if lexer.token_position != lexer.token_start {
-                lexer.tokens.push(Token{
-                    lexeme: lexer.data.slice_chars(lexer.token_start,
-                        lexer.token_position).to_string(),
-                    category: Category::Text
-                });
-                lexer.token_start = lexer.token_position;
-            }
+            lexer.tokenize(Category::Text);
 
             lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Bracket });
             lexer.token_start += 1;
