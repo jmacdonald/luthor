@@ -5,134 +5,114 @@ use lexer::Token;
 use lexer::Category;
 
 fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
-    if lexer.token_position >= lexer.char_count {
-        lexer.tokenize(Category::Text);
-
-        return None;
-    }
-
-    // TODO: Replace char_at with something UTF8 compatible.
-    match lexer.data.char_at(lexer.token_position) {
-        '{' => {
-            lexer.tokenize(Category::Text);
-
-            lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Brace });
-            lexer.token_start += 1;
-            lexer.token_position += 1;
-            Some(StateFunction(initial_state))
-        },
-        '[' => {
-            lexer.tokenize(Category::Text);
-
-            lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Bracket });
-            lexer.token_start += 1;
-            lexer.token_position += 1;
-            Some(StateFunction(initial_state))
-        },
-        ' ' | '\n' => {
-            lexer.tokenize(Category::Text);
-
-            lexer.token_position += 1;
-            Some(StateFunction(whitespace))
-        },
-        '"' => {
-            lexer.tokenize(Category::Text);
-
-            lexer.token_position += 1;
-            Some(StateFunction(inside_string))
-        },
-        ':' => {
-            lexer.tokenize(Category::Text);
-
-            lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::AssignmentOperator });
-            lexer.token_start += 1;
-            lexer.token_position += 1;
-            Some(StateFunction(initial_state))
-        },
-        '}' => {
-            lexer.tokenize(Category::Text);
-
-            lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Brace });
-            None
-        },
-        ']' => {
-            lexer.tokenize(Category::Text);
-
-            lexer.tokens.push(Token{ lexeme: lexer.data.char_at(lexer.token_position).to_string(), category: Category::Bracket });
-            lexer.token_start += 1;
-            lexer.token_position += 1;
-            Some(StateFunction(initial_state))
-        },
-        _ => {
-            if lexer.token_position == lexer.token_start {
-                let remaining_data = lexer.data.slice_from(lexer.token_position);
-                if remaining_data.starts_with("true") {
-                    lexer.token_position += 4;
-                    lexer.tokens.push(Token{
-                        lexeme: lexer.data.slice_chars(lexer.token_start,
-                            lexer.token_position).to_string(),
-                        category: Category::Boolean
-                    });
-                    lexer.token_start = lexer.token_position;
-                } else if remaining_data.starts_with("false") {
-                    lexer.token_position += 5;
-                    lexer.tokens.push(Token{
-                        lexeme: lexer.data.slice_chars(lexer.token_start,
-                            lexer.token_position).to_string(),
-                        category: Category::Boolean
-                    });
-                    lexer.token_start = lexer.token_position;
-                } else if remaining_data.starts_with("null") {
-                    lexer.token_position += 4;
-                    lexer.tokens.push(Token{
-                        lexeme: lexer.data.slice_chars(lexer.token_start,
-                            lexer.token_position).to_string(),
-                        category: Category::Keyword
-                    });
-                    lexer.token_start = lexer.token_position;
+    if lexer.has_more_data() {
+        // TODO: Replace char_at with something UTF8 compatible.
+        match lexer.data.char_at(lexer.token_position) {
+            '{' => {
+                lexer.tokenize_next(1, Category::Brace);
+                Some(StateFunction(initial_state))
+            },
+            '[' => {
+                lexer.tokenize_next(1, Category::Bracket);
+                Some(StateFunction(initial_state))
+            },
+            ' ' | '\n' => {
+                lexer.tokenize(Category::Text);
+                lexer.advance();
+                Some(StateFunction(whitespace))
+            },
+            '"' => {
+                lexer.tokenize(Category::Text);
+                lexer.advance();
+                Some(StateFunction(inside_string))
+            },
+            ':' => {
+                lexer.tokenize_next(1, Category::AssignmentOperator);
+                Some(StateFunction(initial_state))
+            },
+            '}' => {
+                lexer.tokenize_next(1, Category::Brace);
+                None
+            },
+            ']' => {
+                lexer.tokenize_next(1, Category::Bracket);
+                Some(StateFunction(initial_state))
+            },
+            _ => {
+                if lexer.token_position == lexer.token_start {
+                    let remaining_data = lexer.data.slice_from(lexer.token_position);
+                    if remaining_data.starts_with("true") {
+                        lexer.token_position += 4;
+                        lexer.tokens.push(Token{
+                            lexeme: lexer.data.slice_chars(lexer.token_start,
+                                lexer.token_position).to_string(),
+                            category: Category::Boolean
+                        });
+                        lexer.token_start = lexer.token_position;
+                    } else if remaining_data.starts_with("false") {
+                        lexer.token_position += 5;
+                        lexer.tokens.push(Token{
+                            lexeme: lexer.data.slice_chars(lexer.token_start,
+                                lexer.token_position).to_string(),
+                            category: Category::Boolean
+                        });
+                        lexer.token_start = lexer.token_position;
+                    } else if remaining_data.starts_with("null") {
+                        lexer.token_position += 4;
+                        lexer.tokens.push(Token{
+                            lexeme: lexer.data.slice_chars(lexer.token_start,
+                                lexer.token_position).to_string(),
+                            category: Category::Keyword
+                        });
+                        lexer.token_start = lexer.token_position;
+                    } else {
+                        lexer.token_position += 1;
+                    }
                 } else {
                     lexer.token_position += 1;
                 }
-            } else {
-                lexer.token_position += 1;
+                Some(StateFunction(initial_state))
             }
-            Some(StateFunction(initial_state))
         }
+    } else {
+        lexer.tokenize(Category::Text);
+        None
     }
+
 }
 
 fn inside_string(lexer: &mut Lexer) -> Option<StateFunction> {
-    if lexer.token_position >= lexer.char_count {
-        lexer.tokens.push(Token{ lexeme: lexer.data.slice_chars(lexer.token_start, lexer.token_position).to_string(), category: Category::String });
-        return None;
-    }
-    match lexer.data.char_at(lexer.token_position) {
-        '"' => {
-            lexer.token_position += 1;
-            lexer.tokens.push(Token{ lexeme: lexer.data.slice_chars(lexer.token_start, lexer.token_position).to_string(), category: Category::String });
-            lexer.token_start = lexer.token_position;
-            Some(StateFunction(initial_state))
-        },
-        '\\' => {
-            lexer.token_position += 2;
-            Some(StateFunction(inside_string))
+    if lexer.has_more_data() {
+        match lexer.data.char_at(lexer.token_position) {
+            '"' => {
+                lexer.advance();
+                lexer.tokenize(Category::String);
+                Some(StateFunction(initial_state))
+            },
+            '\\' => {
+                lexer.advance();
+                lexer.advance();
+                Some(StateFunction(inside_string))
+            }
+            _ => {
+                lexer.advance();
+                Some(StateFunction(inside_string))
+            }
         }
-        _ => {
-            lexer.token_position += 1;
-            Some(StateFunction(inside_string))
-        }
+    } else {
+        lexer.tokenize(Category::String);
+        None
     }
 }
 
 fn whitespace(lexer: &mut Lexer) -> Option<StateFunction> {
     match lexer.data.char_at(lexer.token_position) {
         ' ' | '\n' => {
-            lexer.token_position += 1;
+            lexer.advance();
             Some(StateFunction(whitespace))
         },
         _ => {
-            lexer.tokens.push(Token{ lexeme: lexer.data.slice_chars(lexer.token_start, lexer.token_position).to_string(), category: Category::Whitespace });
-            lexer.token_start = lexer.token_position;
+            lexer.tokenize(Category::Whitespace);
             Some(StateFunction(initial_state))
         }
     }
