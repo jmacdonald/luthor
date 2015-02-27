@@ -27,9 +27,13 @@ pub fn new(data: &str) -> Lexer {
 
 impl Lexer {
     pub fn advance(&mut self) {
-        if self.token_position < self.char_count-1 {
+        if self.has_more_data() {
             self.token_position += 1;
         }
+    }
+
+    pub fn has_more_data(&self) -> bool {
+        self.token_position < self.char_count
     }
 
     pub fn tokenize(&mut self, category: Category) {
@@ -86,7 +90,19 @@ mod tests {
             lexer.advance();
         }
 
-        assert_eq!(lexer.token_position, lexer.char_count-1);
+        assert_eq!(lexer.token_position, lexer.char_count);
+    }
+
+    #[test]
+    fn has_more_data_works() {
+        let lexer_data = "él";
+        let mut lexer = new(lexer_data);
+
+        lexer.advance();
+        assert!(lexer.has_more_data());
+
+        lexer.advance();
+        assert_eq!(lexer.has_more_data(), false);
     }
 
     #[test]
