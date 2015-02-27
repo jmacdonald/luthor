@@ -1,5 +1,6 @@
 pub use self::token::Token;
 pub use self::token::Category;
+use std::cmp::min;
 
 pub mod token;
 pub mod implementations;
@@ -40,6 +41,12 @@ impl Lexer {
             self.tokens.push(token);
             self.token_start = self.token_position;
         }
+    }
+
+    pub fn tokenize_next(&mut self, amount: usize, category: Category) {
+        self.tokenize(Category::Text);
+        self.token_position = min(self.token_position + amount, self.char_count);
+        self.tokenize(category);
     }
 }
 
@@ -115,5 +122,44 @@ mod tests {
         assert_eq!(lexer.tokens.len(), 0);
         assert_eq!(lexer.token_start, 0);
         assert_eq!(lexer.token_position, 0);
+    }
+
+    #[test]
+    fn tokenize_next_tokenizes_previous_data_as_text() {
+        let lexer_data = "élégant";
+        let mut lexer = new(lexer_data);
+        lexer.advance();
+        lexer.advance();
+        lexer.tokenize_next(1, Category::Keyword);
+
+        let token = lexer.tokens.remove(0);
+        let expected_token = Token{ lexeme: "él".to_string(), category: Category::Text};
+        assert_eq!(token, expected_token);
+    }
+
+    #[test]
+    fn tokenize_next_tokenizes_next_x_chars() {
+        let lexer_data = "élégant";
+        let mut lexer = new(lexer_data);
+        lexer.advance();
+        lexer.advance();
+        lexer.tokenize_next(5, Category::Keyword);
+
+        let token = lexer.tokens.pop().unwrap();
+        let expected_token = Token{ lexeme: "égant".to_string(), category: Category::Keyword};
+        assert_eq!(token, expected_token);
+    }
+
+    #[test]
+    fn tokenize_next_takes_at_most_what_is_left() {
+        let lexer_data = "élégant";
+        let mut lexer = new(lexer_data);
+        lexer.advance();
+        lexer.advance();
+        lexer.tokenize_next(15, Category::Keyword);
+
+        let token = lexer.tokens.pop().unwrap();
+        let expected_token = Token{ lexeme: "égant".to_string(), category: Category::Keyword};
+        assert_eq!(token, expected_token);
     }
 }
