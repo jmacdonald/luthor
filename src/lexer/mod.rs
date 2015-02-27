@@ -30,10 +30,23 @@ impl Lexer {
             self.token_position += 1;
         }
     }
+
+    pub fn tokenize(&mut self, category: Category) {
+        if self.token_start != self.token_position {
+            let token = Token{
+                lexeme: self.data.slice_chars(self.token_start, self.token_position).to_string(),
+                category: category,
+            };
+            self.tokens.push(token);
+            self.token_start = self.token_position;
+        }
+    }
 }
 
 mod tests {
     use super::new;
+    use super::token::Token;
+    use super::token::Category;
 
     #[test]
     fn new_initializes_correctly_with_unicode_data() {
@@ -67,5 +80,40 @@ mod tests {
         }
 
         assert_eq!(lexer.token_position, lexer.char_count-1);
+    }
+
+    #[test]
+    fn tokenize_advances_token_start_to_cursor() {
+        let lexer_data = "élégant";
+        let mut lexer = new(lexer_data);
+        lexer.advance();
+        lexer.advance();
+        lexer.tokenize(Category::Text);
+        
+        assert_eq!(lexer.token_start, 2);
+    }
+
+    #[test]
+    fn tokenize_creates_the_correct_token() {
+        let lexer_data = "élégant";
+        let mut lexer = new(lexer_data);
+        lexer.advance();
+        lexer.advance();
+        lexer.tokenize(Category::Text);
+        
+        let token = lexer.tokens.pop().unwrap();
+        let expected_token = Token{ lexeme: "él".to_string(), category: Category::Text};
+        assert_eq!(token, expected_token);
+    }
+
+    #[test]
+    fn tokenize_does_nothing_if_range_is_empty() {
+        let lexer_data = "élégant";
+        let mut lexer = new(lexer_data);
+        lexer.tokenize(Category::Text);
+        
+        assert_eq!(lexer.tokens.len(), 0);
+        assert_eq!(lexer.token_start, 0);
+        assert_eq!(lexer.token_position, 0);
     }
 }
