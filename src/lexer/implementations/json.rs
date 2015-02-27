@@ -166,6 +166,10 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
 }
 
 fn inside_string(lexer: &mut Lexer) -> Option<StateFunction> {
+    if lexer.token_position >= lexer.char_count {
+        lexer.tokens.push(Token{ lexeme: lexer.data.slice_chars(lexer.token_start, lexer.token_position).to_string(), category: Category::String });
+        return None;
+    }
     match lexer.data.char_at(lexer.token_position) {
         '"' => {
             lexer.token_position += 1;
@@ -251,6 +255,33 @@ mod tests {
             Token{ lexeme: "]".to_string(), category: Category::Bracket },
             Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
             Token{ lexeme: "}".to_string(), category: Category::Brace },
+        ];
+
+        for (index, token) in tokens.iter().enumerate() {
+            assert_eq!(*token, expected_tokens[index]);
+        }
+    }
+
+    #[test]
+    fn it_can_handle_garbage() {
+        let tokens = lex("} adwyx123&*_ ");
+        let expected_tokens = vec![
+            Token{ lexeme: "}".to_string(), category: Category::Brace },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "adwyx123&*_".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+        ];
+
+        for (index, token) in tokens.iter().enumerate() {
+            assert_eq!(*token, expected_tokens[index]);
+        }
+    }
+
+    #[test]
+    fn it_can_handle_open_strings() {
+        let tokens = lex("\"open!");
+        let expected_tokens = vec![
+            Token{ lexeme: "\"open!".to_string(), category: Category::String },
         ];
 
         for (index, token) in tokens.iter().enumerate() {
