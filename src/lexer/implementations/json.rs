@@ -6,8 +6,7 @@ use lexer::Category;
 
 fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
     if lexer.has_more_data() {
-        // TODO: Replace char_at with something UTF8 compatible.
-        match lexer.data.char_at(lexer.token_position) {
+        match lexer.data.chars().nth(lexer.token_position).unwrap() {
             '{' => {
                 lexer.tokenize_next(1, Category::Brace);
             },
@@ -61,7 +60,7 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
 
 fn inside_string(lexer: &mut Lexer) -> Option<StateFunction> {
     if lexer.has_more_data() {
-        match lexer.data.char_at(lexer.token_position) {
+        match lexer.data.chars().nth(lexer.token_position).unwrap() {
             '"' => {
                 lexer.advance();
                 lexer.tokenize(Category::String);
@@ -85,7 +84,7 @@ fn inside_string(lexer: &mut Lexer) -> Option<StateFunction> {
 
 fn whitespace(lexer: &mut Lexer) -> Option<StateFunction> {
     if lexer.has_more_data() {
-        match lexer.data.char_at(lexer.token_position) {
+        match lexer.data.chars().nth(lexer.token_position).unwrap() {
             ' ' | '\n' => {
                 lexer.advance();
                 Some(StateFunction(whitespace))
@@ -182,6 +181,18 @@ mod tests {
         let tokens = lex("\"open!");
         let expected_tokens = vec![
             Token{ lexeme: "\"open!".to_string(), category: Category::String },
+        ];
+
+        for (index, token) in tokens.iter().enumerate() {
+            assert_eq!(*token, expected_tokens[index]);
+        }
+    }
+
+    #[test]
+    fn it_can_handle_utf8_data() {
+        let tokens = lex("différent");
+        let expected_tokens = vec![
+            Token{ lexeme: "différent".to_string(), category: Category::Text },
         ];
 
         for (index, token) in tokens.iter().enumerate() {
