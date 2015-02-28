@@ -36,6 +36,14 @@ impl Lexer {
         self.token_position < self.char_count
     }
 
+    pub fn current_char(&self) -> Option<char> {
+        if self.has_more_data() {
+            Some(self.data.chars().nth(self.token_position).unwrap())
+        } else {
+            None
+        }
+    }
+
     pub fn tokenize(&mut self, category: Category) {
         if self.token_start != self.token_position {
             let token = Token{
@@ -103,6 +111,24 @@ mod tests {
 
         lexer.advance();
         assert_eq!(lexer.has_more_data(), false);
+    }
+
+    #[test]
+    fn current_char_returns_the_char_at_token_position() {
+        let lexer_data = "él";
+        let mut lexer = new(lexer_data);
+
+        assert_eq!(lexer.current_char().unwrap(), 'é');
+    }
+
+    #[test]
+    fn current_char_returns_none_if_at_the_end() {
+        let lexer_data = "él";
+        let mut lexer = new(lexer_data);
+        lexer.advance();
+        lexer.advance();
+
+        assert_eq!(lexer.current_char(), None);
     }
 
     #[test]
