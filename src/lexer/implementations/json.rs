@@ -40,36 +40,20 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
             },
             _ => {
                 if lexer.token_position == lexer.token_start {
-                    let remaining_data = lexer.data.slice_from(lexer.token_position);
+                    let remaining_data = lexer.data
+                        .slice_from(lexer.token_position).to_string();
+
                     if remaining_data.starts_with("true") {
-                        lexer.token_position += 4;
-                        lexer.tokens.push(Token{
-                            lexeme: lexer.data.slice_chars(lexer.token_start,
-                                lexer.token_position).to_string(),
-                            category: Category::Boolean
-                        });
-                        lexer.token_start = lexer.token_position;
+                        lexer.tokenize_next(4, Category::Boolean);
                     } else if remaining_data.starts_with("false") {
-                        lexer.token_position += 5;
-                        lexer.tokens.push(Token{
-                            lexeme: lexer.data.slice_chars(lexer.token_start,
-                                lexer.token_position).to_string(),
-                            category: Category::Boolean
-                        });
-                        lexer.token_start = lexer.token_position;
+                        lexer.tokenize_next(5, Category::Boolean);
                     } else if remaining_data.starts_with("null") {
-                        lexer.token_position += 4;
-                        lexer.tokens.push(Token{
-                            lexeme: lexer.data.slice_chars(lexer.token_start,
-                                lexer.token_position).to_string(),
-                            category: Category::Keyword
-                        });
-                        lexer.token_start = lexer.token_position;
+                        lexer.tokenize_next(4, Category::Keyword);
                     } else {
-                        lexer.token_position += 1;
+                        lexer.advance();
                     }
                 } else {
-                    lexer.token_position += 1;
+                    lexer.advance();
                 }
                 Some(StateFunction(initial_state))
             }
