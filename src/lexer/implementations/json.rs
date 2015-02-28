@@ -10,33 +10,28 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
         match lexer.data.char_at(lexer.token_position) {
             '{' => {
                 lexer.tokenize_next(1, Category::Brace);
-                Some(StateFunction(initial_state))
             },
             '[' => {
                 lexer.tokenize_next(1, Category::Bracket);
-                Some(StateFunction(initial_state))
             },
             ' ' | '\n' => {
                 lexer.tokenize(Category::Text);
                 lexer.advance();
-                Some(StateFunction(whitespace))
+                return Some(StateFunction(whitespace));
             },
             '"' => {
                 lexer.tokenize(Category::Text);
                 lexer.advance();
-                Some(StateFunction(inside_string))
+                return Some(StateFunction(inside_string));
             },
             ':' => {
                 lexer.tokenize_next(1, Category::AssignmentOperator);
-                Some(StateFunction(initial_state))
             },
             '}' => {
                 lexer.tokenize_next(1, Category::Brace);
-                None
             },
             ']' => {
                 lexer.tokenize_next(1, Category::Bracket);
-                Some(StateFunction(initial_state))
             },
             _ => {
                 if lexer.token_position == lexer.token_start {
@@ -55,14 +50,13 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
                 } else {
                     lexer.advance();
                 }
-                Some(StateFunction(initial_state))
             }
         }
+        Some(StateFunction(initial_state))
     } else {
         lexer.tokenize(Category::Text);
         None
     }
-
 }
 
 fn inside_string(lexer: &mut Lexer) -> Option<StateFunction> {
@@ -90,15 +84,20 @@ fn inside_string(lexer: &mut Lexer) -> Option<StateFunction> {
 }
 
 fn whitespace(lexer: &mut Lexer) -> Option<StateFunction> {
-    match lexer.data.char_at(lexer.token_position) {
-        ' ' | '\n' => {
-            lexer.advance();
-            Some(StateFunction(whitespace))
-        },
-        _ => {
-            lexer.tokenize(Category::Whitespace);
-            Some(StateFunction(initial_state))
+    if lexer.has_more_data() {
+        match lexer.data.char_at(lexer.token_position) {
+            ' ' | '\n' => {
+                lexer.advance();
+                Some(StateFunction(whitespace))
+            },
+            _ => {
+                lexer.tokenize(Category::Whitespace);
+                Some(StateFunction(initial_state))
+            }
         }
+    } else {
+        lexer.tokenize(Category::Whitespace);
+        None
     }
 }
 
@@ -155,6 +154,7 @@ mod tests {
             Token{ lexeme: "]".to_string(), category: Category::Bracket },
             Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
             Token{ lexeme: "}".to_string(), category: Category::Brace },
+            Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
         ];
 
         for (index, token) in tokens.iter().enumerate() {
