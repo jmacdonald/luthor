@@ -15,6 +15,20 @@ pub struct Lexer {
     tokens: Vec<Token>,
 }
 
+impl Lexer {
+    /// Returns a copy of the tokens processed to date.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let lexer = luthor::lexer::new("luthor");
+    /// lexer.tokens();
+    /// ```
+    pub fn tokens(&self) -> Vec<Token> {
+        self.tokens.clone()
+    }
+}
+
 pub fn new(data: &str) -> Lexer {
     Lexer{
       data: data.to_string(),

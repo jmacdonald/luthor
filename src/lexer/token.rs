@@ -1,4 +1,4 @@
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Category {
     Whitespace,
     Identifier,
@@ -14,7 +14,7 @@ pub enum Category {
     Text,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Token {
     pub lexeme: String,
     pub category: Category,
