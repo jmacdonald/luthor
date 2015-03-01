@@ -1,8 +1,8 @@
 use lexer::new;
 use lexer::Lexer;
 use lexer::StateFunction;
-use lexer::Token;
-use lexer::Category;
+use lexer::token::Token;
+use lexer::token::Category;
 
 fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
     match lexer.current_char() {
@@ -113,7 +113,7 @@ fn whitespace(lexer: &mut Lexer) -> Option<StateFunction> {
     }
 }
 
-fn lex(data: &str) -> Vec<Token> {
+pub fn lex(data: &str) -> Vec<Token> {
     let mut lexer = new(data);
     let mut state_function = StateFunction(initial_state);
     loop {
@@ -127,8 +127,8 @@ fn lex(data: &str) -> Vec<Token> {
 
 mod tests {
     use super::lex;
-    use lexer::Token;
-    use lexer::Category;
+    use lexer::token::Token;
+    use lexer::token::Category;
     use std::old_io::{File, Open, Read};
 
     #[test]

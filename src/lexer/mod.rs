@@ -1,9 +1,9 @@
-pub use self::token::Token;
-pub use self::token::Category;
 use std::cmp::min;
+use self::token::Token;
+use self::token::Category;
 
+pub mod lexers;
 pub mod token;
-pub mod implementations;
 
 pub struct StateFunction(fn(&mut Lexer) -> Option<StateFunction>);
 
@@ -131,8 +131,8 @@ impl Lexer {
     /// # Examples
     ///
     /// ```
-    /// use luthor::lexer::Category;
-    /// use luthor::lexer::Token;
+    /// use luthor::lexer::token::Category;
+    /// use luthor::lexer::token::Token;
     ///
     /// let mut lexer = luthor::lexer::new("luthor");
     /// lexer.advance();
