@@ -7,6 +7,8 @@ pub mod implementations;
 
 pub struct StateFunction(fn(&mut Lexer) -> Option<StateFunction>);
 
+/// The Lexer type is used to produce and store tokens
+/// for the various language and format implemenations.
 pub struct Lexer {
     data: String,
     char_count: usize,
@@ -29,6 +31,13 @@ impl Lexer {
     }
 }
 
+/// Initializes a new lexer with the given data.
+///
+/// # Examples
+///
+/// ```
+/// let lexer = luthor::lexer::new("luthor");
+/// ```
 pub fn new(data: &str) -> Lexer {
     Lexer{
       data: data.to_string(),
@@ -40,16 +49,48 @@ pub fn new(data: &str) -> Lexer {
 }
 
 impl Lexer {
+    /// Moves to the next character in the data.
+    /// Does nothing if there is no more data to process.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut lexer = luthor::lexer::new("luthor");
+    /// assert_eq!(lexer.current_char().unwrap(), 'l');
+    /// lexer.advance();
+    /// assert_eq!(lexer.current_char().unwrap(), 'u');
+    /// ```
     pub fn advance(&mut self) {
         if self.has_more_data() {
             self.token_position += 1;
         }
     }
 
+    /// Determines whether or not there is more unprocessed data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut lexer = luthor::lexer::new("l");
+    /// assert_eq!(lexer.has_more_data(), true);
+    /// lexer.advance();
+    /// assert_eq!(lexer.has_more_data(), false);
+    /// ```
     pub fn has_more_data(&self) -> bool {
         self.token_position < self.char_count
     }
 
+    /// Returns the character at the current position,
+    /// unless all of the data has been processed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut lexer = luthor::lexer::new("l");
+    /// assert_eq!(lexer.current_char().unwrap(), 'l');
+    /// lexer.advance();
+    /// assert_eq!(lexer.current_char(), None);
+    /// ```
     pub fn current_char(&self) -> Option<char> {
         if self.has_more_data() {
             Some(self.data.chars().nth(self.token_position).unwrap())
@@ -58,6 +99,19 @@ impl Lexer {
         }
     }
 
+    /// Creates and stores a token with the given category containing any
+    /// data processed using `advance` since the last call to this method.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use luthor::lexer::token::Category;
+    /// let mut lexer = luthor::lexer::new("luthor");
+    /// lexer.advance();
+    /// lexer.advance();
+    /// lexer.tokenize(Category::Text);
+    /// assert_eq!(lexer.tokens()[0].lexeme, "lu");
+    /// ```
     pub fn tokenize(&mut self, category: Category) {
         if self.token_start != self.token_position {
             let token = Token{
@@ -69,6 +123,23 @@ impl Lexer {
         }
     }
 
+    /// Creates and stores a token with the given category and the
+    /// next `amount` characters of the data. Before doing this, it
+    /// tokenizes any previously processed characters with the generic
+    /// Category::Text category.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use luthor::lexer::Category;
+    /// use luthor::lexer::Token;
+    ///
+    /// let mut lexer = luthor::lexer::new("luthor");
+    /// lexer.advance();
+    /// lexer.tokenize_next(5, Category::Keyword);
+    /// assert_eq!(lexer.tokens()[0], Token{ lexeme: "l".to_string(), category: Category::Text});
+    /// assert_eq!(lexer.tokens()[1], Token{ lexeme: "uthor".to_string(), category: Category::Keyword});
+    /// ```
     pub fn tokenize_next(&mut self, amount: usize, category: Category) {
         self.tokenize(Category::Text);
         self.token_position = min(self.token_position + amount, self.char_count);
