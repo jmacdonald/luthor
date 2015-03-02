@@ -1,8 +1,8 @@
-use lexer::new;
-use lexer::Tokenizer;
-use lexer::StateFunction;
-use lexer::token::Token;
-use lexer::token::Category;
+use tokenizer::new;
+use tokenizer::Tokenizer;
+use tokenizer::StateFunction;
+use token::Token;
+use token::Category;
 
 fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
@@ -120,15 +120,15 @@ pub fn lex(data: &str) -> Vec<Token> {
         let StateFunction(actual_function) = state_function;
         match actual_function(&mut lexer) {
             Some(f) => state_function = f,
-            None => return lexer.tokens,
+            None => return lexer.tokens(),
         }
     }
 }
 
 mod tests {
     use super::lex;
-    use lexer::token::Token;
-    use lexer::token::Category;
+    use token::Token;
+    use token::Category;
     use std::old_io::{File, Open, Read};
 
     #[test]

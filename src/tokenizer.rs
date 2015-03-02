@@ -1,19 +1,16 @@
 use std::cmp::min;
-use self::token::Token;
-use self::token::Category;
+use super::token::Token;
+use super::token::Category;
 
-pub mod lexers;
-pub mod token;
-
-pub struct StateFunction(fn(&mut Tokenizer) -> Option<StateFunction>);
+pub struct StateFunction(pub fn(&mut Tokenizer) -> Option<StateFunction>);
 
 /// The Tokenizer type is used to produce and store
 /// tokens for the various language and format lexers.
 pub struct Tokenizer {
-    data: String,
+    pub data: String,
     char_count: usize,
-    token_start: usize,
-    token_position: usize,
+    pub token_start: usize,
+    pub token_position: usize,
     tokens: Vec<Token>,
 }
 
@@ -22,7 +19,7 @@ pub struct Tokenizer {
 /// # Examples
 ///
 /// ```
-/// let lexer = luthor::lexer::new("luthor");
+/// let lexer = luthor::tokenizer::new("luthor");
 /// ```
 pub fn new(data: &str) -> Tokenizer {
     Tokenizer{
@@ -40,7 +37,7 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// let lexer = luthor::lexer::new("luthor");
+    /// let lexer = luthor::tokenizer::new("luthor");
     /// lexer.tokens();
     /// ```
     pub fn tokens(&self) -> Vec<Token> {
@@ -53,7 +50,7 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// let mut lexer = luthor::lexer::new("luthor");
+    /// let mut lexer = luthor::tokenizer::new("luthor");
     /// assert_eq!(lexer.current_char().unwrap(), 'l');
     /// lexer.advance();
     /// assert_eq!(lexer.current_char().unwrap(), 'u');
@@ -69,7 +66,7 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// let mut lexer = luthor::lexer::new("l");
+    /// let mut lexer = luthor::tokenizer::new("l");
     /// assert_eq!(lexer.has_more_data(), true);
     /// lexer.advance();
     /// assert_eq!(lexer.has_more_data(), false);
@@ -84,7 +81,7 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// let mut lexer = luthor::lexer::new("l");
+    /// let mut lexer = luthor::tokenizer::new("l");
     /// assert_eq!(lexer.current_char().unwrap(), 'l');
     /// lexer.advance();
     /// assert_eq!(lexer.current_char(), None);
@@ -103,8 +100,8 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// use luthor::lexer::token::Category;
-    /// let mut lexer = luthor::lexer::new("luthor");
+    /// use luthor::token::Category;
+    /// let mut lexer = luthor::tokenizer::new("luthor");
     /// lexer.advance();
     /// lexer.advance();
     /// lexer.tokenize(Category::Text);
@@ -129,10 +126,10 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// use luthor::lexer::token::Category;
-    /// use luthor::lexer::token::Token;
+    /// use luthor::token::Category;
+    /// use luthor::token::Token;
     ///
-    /// let mut lexer = luthor::lexer::new("luthor");
+    /// let mut lexer = luthor::tokenizer::new("luthor");
     /// lexer.advance();
     /// lexer.tokenize_next(5, Category::Keyword);
     /// assert_eq!(lexer.tokens()[0], Token{ lexeme: "l".to_string(), category: Category::Text});
@@ -147,8 +144,8 @@ impl Tokenizer {
 
 mod tests {
     use super::new;
-    use super::token::Token;
-    use super::token::Category;
+    use super::super::token::Token;
+    use super::super::token::Category;
 
     #[test]
     fn new_initializes_correctly_with_unicode_data() {
