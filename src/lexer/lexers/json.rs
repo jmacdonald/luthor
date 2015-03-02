@@ -1,10 +1,10 @@
 use lexer::new;
-use lexer::Lexer;
+use lexer::Tokenizer;
 use lexer::StateFunction;
 use lexer::token::Token;
 use lexer::token::Category;
 
-fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
+fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
         Some(c) => {
             match c {
@@ -63,7 +63,7 @@ fn initial_state(lexer: &mut Lexer) -> Option<StateFunction> {
     }
 }
 
-fn inside_string(lexer: &mut Lexer) -> Option<StateFunction> {
+fn inside_string(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
         Some(c) => {
             match c {
@@ -91,7 +91,7 @@ fn inside_string(lexer: &mut Lexer) -> Option<StateFunction> {
     }
 }
 
-fn whitespace(lexer: &mut Lexer) -> Option<StateFunction> {
+fn whitespace(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
         Some(c) => {
             match c {

@@ -5,11 +5,11 @@ use self::token::Category;
 pub mod lexers;
 pub mod token;
 
-pub struct StateFunction(fn(&mut Lexer) -> Option<StateFunction>);
+pub struct StateFunction(fn(&mut Tokenizer) -> Option<StateFunction>);
 
-/// The Lexer type is used to produce and store tokens
-/// for the various language and format implemenations.
-pub struct Lexer {
+/// The Tokenizer type is used to produce and store
+/// tokens for the various language and format lexers.
+pub struct Tokenizer {
     data: String,
     char_count: usize,
     token_start: usize,
@@ -17,7 +17,24 @@ pub struct Lexer {
     tokens: Vec<Token>,
 }
 
-impl Lexer {
+/// Initializes a new tokenizer with the given data.
+///
+/// # Examples
+///
+/// ```
+/// let lexer = luthor::lexer::new("luthor");
+/// ```
+pub fn new(data: &str) -> Tokenizer {
+    Tokenizer{
+      data: data.to_string(),
+      char_count: data.chars().count(),
+      token_start: 0,
+      token_position: 0,
+      tokens: vec![]
+    }
+}
+
+impl Tokenizer {
     /// Returns a copy of the tokens processed to date.
     ///
     /// # Examples
@@ -29,26 +46,7 @@ impl Lexer {
     pub fn tokens(&self) -> Vec<Token> {
         self.tokens.clone()
     }
-}
 
-/// Initializes a new lexer with the given data.
-///
-/// # Examples
-///
-/// ```
-/// let lexer = luthor::lexer::new("luthor");
-/// ```
-pub fn new(data: &str) -> Lexer {
-    Lexer{
-      data: data.to_string(),
-      char_count: data.chars().count(),
-      token_start: 0,
-      token_position: 0,
-      tokens: vec![]
-    }
-}
-
-impl Lexer {
     /// Moves to the next character in the data.
     /// Does nothing if there is no more data to process.
     ///
