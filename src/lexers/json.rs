@@ -35,8 +35,8 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
                 },
                 _ => {
                     if lexer.token_position == lexer.token_start {
-                        let remaining_data = lexer.data
-                            .slice_from(lexer.token_position).to_string();
+                        let remaining_data =
+                            lexer.data[lexer.token_position..].to_string();
 
                         if remaining_data.starts_with("true") {
                             lexer.tokenize_next(4, Category::Boolean);
@@ -125,6 +125,7 @@ pub fn lex(data: &str) -> Vec<Token> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::lex;
     use token::Token;
