@@ -12,6 +12,7 @@ pub struct Tokenizer {
     pub token_start: usize,
     pub token_position: usize,
     tokens: Vec<Token>,
+    pub states: Vec<StateFunction>,
 }
 
 /// Initializes a new tokenizer with the given data.
@@ -27,7 +28,8 @@ pub fn new(data: &str) -> Tokenizer {
       char_count: data.chars().count(),
       token_start: 0,
       token_position: 0,
-      tokens: vec![]
+      tokens: vec![],
+      states: vec![]
     }
 }
 
