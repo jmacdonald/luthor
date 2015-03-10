@@ -7,6 +7,16 @@ use token::Category;
 fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
         Some(c) => {
+            if lexer.token_position == lexer.token_start {
+                let remaining_data = lexer.data
+                    .slice_from(lexer.token_position).to_string();
+
+                if remaining_data.starts_with("</") {
+                    lexer.tokenize(Category::Identifier);
+                    lexer.tokenize_next(2, Category::Text);
+                    return Some(StateFunction(inside_tag))
+                }
+            }
             match c {
                 '<' => {
                     lexer.tokenize_next(1, Category::Text);
@@ -38,12 +48,12 @@ fn start_of_tag(lexer: &mut Tokenizer) -> Option<StateFunction> {
         Some(c) => {
             match c {
                 ' ' | '\n' => {
-                    lexer.tokenize(Category::Keyword);
+                    lexer.tokenize(Category::Identifier);
                     lexer.states.push(StateFunction(inside_tag));
                     return Some(StateFunction(whitespace));
                 },
                 '>' => {
-                    lexer.tokenize(Category::Keyword);
+                    lexer.tokenize(Category::Identifier);
                     lexer.tokenize_next(1, Category::Text);
                     Some(StateFunction(initial_state))
                 }
@@ -55,7 +65,7 @@ fn start_of_tag(lexer: &mut Tokenizer) -> Option<StateFunction> {
         }
 
         None => {
-            lexer.tokenize(Category::Keyword);
+            lexer.tokenize(Category::Identifier);
             None
         }
     }
@@ -82,7 +92,7 @@ fn inside_tag(lexer: &mut Tokenizer) -> Option<StateFunction> {
                     Some(StateFunction(inside_tag))
                 }
                 '>' => {
-                    lexer.tokenize(Category::Keyword);
+                    lexer.tokenize(Category::Identifier);
                     lexer.tokenize_next(1, Category::Text);
                     Some(StateFunction(initial_state))
                 }
@@ -92,7 +102,7 @@ fn inside_tag(lexer: &mut Tokenizer) -> Option<StateFunction> {
                             .slice_from(lexer.token_position).to_string();
 
                         if remaining_data.starts_with("/>") {
-                            lexer.tokenize(Category::Keyword);
+                            lexer.tokenize(Category::Identifier);
                             lexer.tokenize_next(2, Category::Text);
                             return Some(StateFunction(initial_state))
                         }
@@ -186,27 +196,27 @@ mod tests {
         let tokens = lex(&data);
         let expected_tokens = vec![
             Token{ lexeme: "<".to_string(), category: Category::Text },
-            Token{ lexeme: "tag".to_string(), category: Category::Keyword },
+            Token{ lexeme: "tag".to_string(), category: Category::Identifier },
             Token{ lexeme: ">".to_string(), category: Category::Text },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "<".to_string(), category: Category::Text },
-            Token{ lexeme: "tag_with_attribute".to_string(), category: Category::Keyword },
+            Token{ lexeme: "tag_with_attribute".to_string(), category: Category::Identifier },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "attribute".to_string(), category: Category::Identifier },
             Token{ lexeme: "=".to_string(), category: Category::AssignmentOperator },
             Token{ lexeme: "\"value\"".to_string(), category: Category::String },
             Token{ lexeme: ">".to_string(), category: Category::Text },
-            Token{ lexeme: "<".to_string(), category: Category::Text },
-            Token{ lexeme: "/tag_with_attribute".to_string(), category: Category::Keyword },
+            Token{ lexeme: "</".to_string(), category: Category::Text },
+            Token{ lexeme: "tag_with_attribute".to_string(), category: Category::Identifier },
             Token{ lexeme: ">".to_string(), category: Category::Text },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "<".to_string(), category: Category::Text },
-            Token{ lexeme: "self_closing_tag".to_string(), category: Category::Keyword },
+            Token{ lexeme: "self_closing_tag".to_string(), category: Category::Identifier },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "/>".to_string(), category: Category::Text },
             Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "<".to_string(), category: Category::Text },
-            Token{ lexeme: "/tag".to_string(), category: Category::Keyword },
+            Token{ lexeme: "</".to_string(), category: Category::Text },
+            Token{ lexeme: "tag".to_string(), category: Category::Identifier },
             Token{ lexeme: ">".to_string(), category: Category::Text },
             Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
         ];
@@ -236,7 +246,7 @@ mod tests {
         let tokens = lex("<tag \"open!>");
         let expected_tokens = vec![
             Token{ lexeme: "<".to_string(), category: Category::Text },
-            Token{ lexeme: "tag".to_string(), category: Category::Keyword },
+            Token{ lexeme: "tag".to_string(), category: Category::Identifier },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "\"open!>".to_string(), category: Category::String },
         ];
