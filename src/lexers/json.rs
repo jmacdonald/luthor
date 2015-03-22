@@ -130,13 +130,11 @@ mod tests {
     use super::lex;
     use token::Token;
     use token::Category;
-    use std::old_io::{File, Open, Read};
 
     #[test]
     fn it_works() {
-        let data = File::open_mode(&Path::new("test_data/data.json"), Open, Read)
-            .unwrap().read_to_string().unwrap();
-        let tokens = lex(&data);
+        let data = include_str!("../../test_data/data.json");
+        let tokens = lex(data);
         let expected_tokens = vec![
             Token{ lexeme: "{".to_string(), category: Category::Brace },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
