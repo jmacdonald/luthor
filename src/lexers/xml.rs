@@ -191,9 +191,8 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let data = File::open_mode(&Path::new("test_data/data.xml"), Open, Read)
-            .unwrap().read_to_string().unwrap();
-        let tokens = lex(&data);
+        let data = include_str!("../../test_data/data.xml");
+        let tokens = lex(data);
         let expected_tokens = vec![
             Token{ lexeme: "<".to_string(), category: Category::Text },
             Token{ lexeme: "tag".to_string(), category: Category::Identifier },
