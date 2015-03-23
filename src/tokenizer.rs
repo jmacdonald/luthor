@@ -144,6 +144,7 @@ impl Tokenizer {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::new;
     use super::super::token::Token;
@@ -198,7 +199,7 @@ mod tests {
     #[test]
     fn current_char_returns_the_char_at_token_position() {
         let lexer_data = "él";
-        let mut lexer = new(lexer_data);
+        let lexer = new(lexer_data);
 
         assert_eq!(lexer.current_char().unwrap(), 'é');
     }
@@ -220,7 +221,7 @@ mod tests {
         lexer.advance();
         lexer.advance();
         lexer.tokenize(Category::Text);
-        
+
         assert_eq!(lexer.token_start, 2);
     }
 
@@ -231,7 +232,7 @@ mod tests {
         lexer.advance();
         lexer.advance();
         lexer.tokenize(Category::Text);
-        
+
         let token = lexer.tokens.pop().unwrap();
         let expected_token = Token{ lexeme: "él".to_string(), category: Category::Text};
         assert_eq!(token, expected_token);
@@ -242,7 +243,7 @@ mod tests {
         let lexer_data = "élégant";
         let mut lexer = new(lexer_data);
         lexer.tokenize(Category::Text);
-        
+
         assert_eq!(lexer.tokens.len(), 0);
         assert_eq!(lexer.token_start, 0);
         assert_eq!(lexer.token_position, 0);

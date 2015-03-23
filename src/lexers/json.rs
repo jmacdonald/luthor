@@ -35,8 +35,8 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
                 },
                 _ => {
                     if lexer.token_position == lexer.token_start {
-                        let remaining_data = lexer.data
-                            .slice_from(lexer.token_position).to_string();
+                        let remaining_data =
+                            lexer.data[lexer.token_position..].to_string();
 
                         if remaining_data.starts_with("true") {
                             lexer.tokenize_next(4, Category::Boolean);
@@ -125,17 +125,16 @@ pub fn lex(data: &str) -> Vec<Token> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::lex;
     use token::Token;
     use token::Category;
-    use std::old_io::{File, Open, Read};
 
     #[test]
     fn it_works() {
-        let data = File::open_mode(&Path::new("test_data/data.json"), Open, Read)
-            .unwrap().read_to_string().unwrap();
-        let tokens = lex(&data);
+        let data = include_str!("../../test_data/data.json");
+        let tokens = lex(data);
         let expected_tokens = vec![
             Token{ lexeme: "{".to_string(), category: Category::Brace },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
