@@ -187,7 +187,6 @@ mod tests {
     use super::lex;
     use token::Token;
     use token::Category;
-    use std::old_io::{File, Open, Read};
 
     #[test]
     fn it_works() {
