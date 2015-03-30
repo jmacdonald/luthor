@@ -181,6 +181,7 @@ pub fn lex(data: &str) -> Vec<Token> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::lex;
     use token::Token;
