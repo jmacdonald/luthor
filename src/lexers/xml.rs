@@ -8,8 +8,7 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
         Some(c) => {
             if lexer.token_position == lexer.token_start {
-                let remaining_data = lexer.data
-                    .slice_from(lexer.token_position).to_string();
+                let remaining_data = lexer.data[lexer.token_position..].to_string();
 
                 if remaining_data.starts_with("</") {
                     lexer.tokenize(Category::Identifier);
@@ -98,8 +97,7 @@ fn inside_tag(lexer: &mut Tokenizer) -> Option<StateFunction> {
                 }
                 _ => {
                     if lexer.token_position == lexer.token_start {
-                        let remaining_data = lexer.data
-                            .slice_from(lexer.token_position).to_string();
+                        let remaining_data = lexer.data[lexer.token_position..].to_string();
 
                         if remaining_data.starts_with("/>") {
                             lexer.tokenize(Category::Identifier);
