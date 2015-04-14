@@ -1,4 +1,5 @@
 use std::cmp::min;
+use std::iter::FromIterator;
 use super::token::Token;
 use super::token::Category;
 
@@ -112,7 +113,11 @@ impl Tokenizer {
     pub fn tokenize(&mut self, category: Category) {
         if self.token_start != self.token_position {
             let token = Token{
-                lexeme: self.data.slice_chars(self.token_start, self.token_position).to_string(),
+                lexeme: String::from_iter(
+                    self.data.chars().
+                    skip(self.token_start).
+                    take(self.token_position-self.token_start)
+                ),
                 category: category,
             };
             self.tokens.push(token);
