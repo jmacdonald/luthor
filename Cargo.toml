@@ -1,7 +1,7 @@
 [package]
 
 name = "luthor"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 description = "A collection of lexers for various languages and formats."
 homepage = "https://github.com/jmacdonald/luthor"
