@@ -137,13 +137,16 @@ impl Tokenizer {
     /// assert_eq!(lexer.tokens()[0].lexeme, "lu");
     /// ```
     pub fn tokenize(&mut self, category: Category) {
-        if self.token_start != self.token_position {
+        if self.head > self.tail {
+            // Build the lexeme by slicing the currently
+            // selected range out of the buffer.
+            let lexeme = unsafe {
+                String::from_utf8_unchecked(
+                    self.binary_data[self.tail..self.head].to_vec()
+                )
+            };
             let token = Token{
-                lexeme: String::from_iter(
-                    self.data.chars().
-                    skip(self.token_start).
-                    take(self.token_position-self.token_start)
-                ),
+                lexeme: lexeme,
                 category: category,
             };
             self.tokens.push(token);
