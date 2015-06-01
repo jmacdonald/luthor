@@ -143,8 +143,14 @@ impl Tokenizer {
     /// assert_eq!(lexer.tokens()[1], Token{ lexeme: "uthor".to_string(), category: Category::Keyword});
     /// ```
     pub fn tokenize_next(&mut self, amount: usize, category: Category) {
+        // If there's any data that has yet
+        // to be tokenized, take care of that.
         self.tokenize(Category::Text);
-        self.token_position = min(self.token_position + amount, self.char_count);
+
+        // Mark the next series of characters.
+        for _ in 0..amount { self.advance(); }
+
+        // Tokenize the marked characters.
         self.tokenize(category);
     }
 }
