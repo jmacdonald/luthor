@@ -28,7 +28,7 @@ pub struct Tokenizer {
 /// # Examples
 ///
 /// ```
-/// let lexer = luthor::tokenizer::new("luthor");
+/// let tokenizer = luthor::tokenizer::new("luthor");
 /// ```
 pub fn new(data: &str) -> Tokenizer {
     Tokenizer{
@@ -50,8 +50,8 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// let lexer = luthor::tokenizer::new("luthor");
-    /// lexer.tokens();
+    /// let tokenizer = luthor::tokenizer::new("luthor");
+    /// tokenizer.tokens();
     /// ```
     pub fn tokens(&self) -> Vec<Token> {
         self.tokens.clone()
@@ -63,10 +63,10 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// let mut lexer = luthor::tokenizer::new("luthor");
-    /// assert_eq!(lexer.current_char().unwrap(), 'l');
-    /// lexer.advance();
-    /// assert_eq!(lexer.current_char().unwrap(), 'u');
+    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// assert_eq!(tokenizer.current_char().unwrap(), 'l');
+    /// tokenizer.advance();
+    /// assert_eq!(tokenizer.current_char().unwrap(), 'u');
     /// ```
     pub fn advance(&mut self) {
         if self.has_more_data() {
@@ -87,10 +87,10 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// let mut lexer = luthor::tokenizer::new("l");
-    /// assert_eq!(lexer.has_more_data(), true);
-    /// lexer.advance();
-    /// assert_eq!(lexer.has_more_data(), false);
+    /// let mut tokenizer = luthor::tokenizer::new("l");
+    /// assert_eq!(tokenizer.has_more_data(), true);
+    /// tokenizer.advance();
+    /// assert_eq!(tokenizer.has_more_data(), false);
     /// ```
     pub fn has_more_data(&self) -> bool {
         self.token_position < self.char_count
@@ -102,10 +102,10 @@ impl Tokenizer {
     /// # Examples
     ///
     /// ```
-    /// let mut lexer = luthor::tokenizer::new("l");
-    /// assert_eq!(lexer.current_char().unwrap(), 'l');
-    /// lexer.advance();
-    /// assert_eq!(lexer.current_char(), None);
+    /// let mut tokenizer = luthor::tokenizer::new("l");
+    /// assert_eq!(tokenizer.current_char().unwrap(), 'l');
+    /// tokenizer.advance();
+    /// assert_eq!(tokenizer.current_char(), None);
     /// ```
     pub fn current_char(&self) -> Option<char> {
         if self.has_more_data() {
@@ -130,11 +130,11 @@ impl Tokenizer {
     ///
     /// ```
     /// use luthor::token::Category;
-    /// let mut lexer = luthor::tokenizer::new("luthor");
-    /// lexer.advance();
-    /// lexer.advance();
-    /// lexer.tokenize(Category::Text);
-    /// assert_eq!(lexer.tokens()[0].lexeme, "lu");
+    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// tokenizer.advance();
+    /// tokenizer.advance();
+    /// tokenizer.tokenize(Category::Text);
+    /// assert_eq!(tokenizer.tokens()[0].lexeme, "lu");
     /// ```
     pub fn tokenize(&mut self, category: Category) {
         if self.head > self.tail {
@@ -166,11 +166,11 @@ impl Tokenizer {
     /// use luthor::token::Category;
     /// use luthor::token::Token;
     ///
-    /// let mut lexer = luthor::tokenizer::new("luthor");
-    /// lexer.advance();
-    /// lexer.tokenize_next(5, Category::Keyword);
-    /// assert_eq!(lexer.tokens()[0], Token{ lexeme: "l".to_string(), category: Category::Text});
-    /// assert_eq!(lexer.tokens()[1], Token{ lexeme: "uthor".to_string(), category: Category::Keyword});
+    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// tokenizer.advance();
+    /// tokenizer.tokenize_next(5, Category::Keyword);
+    /// assert_eq!(tokenizer.tokens()[0], Token{ lexeme: "l".to_string(), category: Category::Text});
+    /// assert_eq!(tokenizer.tokens()[1], Token{ lexeme: "uthor".to_string(), category: Category::Keyword});
     /// ```
     pub fn tokenize_next(&mut self, amount: usize, category: Category) {
         // If there's any data that has yet
