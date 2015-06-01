@@ -1,5 +1,9 @@
+extern crate core;
+
+use std::mem;
 use std::cmp::min;
 use std::iter::FromIterator;
+use self::core::str::next_code_point;
 use super::token::Token;
 use super::token::Category;
 
@@ -9,6 +13,9 @@ pub struct StateFunction(pub fn(&mut Tokenizer) -> Option<StateFunction>);
 /// tokens for the various language and format lexers.
 pub struct Tokenizer {
     pub data: String,
+    binary_data: Vec<u8>,
+    head: usize,
+    tail: usize,
     char_count: usize,
     pub token_start: usize,
     pub token_position: usize,
@@ -26,6 +33,9 @@ pub struct Tokenizer {
 pub fn new(data: &str) -> Tokenizer {
     Tokenizer{
       data: data.to_string(),
+      binary_data: data.to_string().into_bytes(),
+      head: 0,
+      tail: 0,
       char_count: data.chars().count(),
       token_start: 0,
       token_position: 0,
@@ -60,7 +70,15 @@ impl Tokenizer {
     /// ```
     pub fn advance(&mut self) {
         if self.has_more_data() {
-            self.token_position += 1;
+            // Get the current character so that we can calculate
+            // its byte length and advance the head appropriately.
+            match self.current_char() {
+                Some(c) => {
+                    self.token_position += 1;
+                    self.head += c.len_utf8();
+                },
+                None => (),
+            }
         }
     }
 
@@ -91,7 +109,15 @@ impl Tokenizer {
     /// ```
     pub fn current_char(&self) -> Option<char> {
         if self.has_more_data() {
-            Some(self.data.chars().nth(self.token_position).unwrap())
+            // Create an iterator for the remaining data.
+            let mut remaining_data = self.binary_data[self.head..].iter();
+
+            // Pull the first UTF-8 byte sequence and convert it to a char.
+            next_code_point(&mut remaining_data).map(|code_point| {
+                unsafe {
+                    mem::transmute(code_point)
+                }
+            })
         } else {
             None
         }
@@ -122,6 +148,7 @@ impl Tokenizer {
             };
             self.tokens.push(token);
             self.token_start = self.token_position;
+            self.tail = self.head;
         }
     }
 
