@@ -192,139 +192,105 @@ mod tests {
     use super::super::token::Category;
 
     #[test]
-    fn new_initializes_correctly_with_unicode_data() {
-        let lexer_data = "différent";
-        let lexer = new(lexer_data);
-        assert_eq!(lexer.data, lexer_data);
-        assert_eq!(lexer.char_count, 9);
-        assert_eq!(lexer.token_start, 0);
-        assert_eq!(lexer.token_position, 0);
-        assert_eq!(lexer.tokens, vec![]);
-    }
-
-    #[test]
-    fn advance_increments_the_cursor_by_one() {
-        let lexer_data = "élégant";
-        let mut lexer = new(lexer_data);
-        lexer.advance();
-        assert_eq!(lexer.token_position, 1);
-        lexer.advance();
-        assert_eq!(lexer.token_position, 2);
-    }
-
-    #[test]
-    fn advance_stops_when_there_is_no_more_data() {
-        let lexer_data = "élégant";
-        let mut lexer = new(lexer_data);
+    fn advance_does_nothing_when_there_is_no_more_data() {
+        let data = "élégant";
+        let mut tokenizer = new(data);
 
         // Try to go beyond the last character.
-        for _ in 0..lexer.char_count {
-            lexer.advance();
+        for _ in 0..10 {
+            tokenizer.advance();
         }
 
-        assert_eq!(lexer.token_position, lexer.char_count);
+        assert!(!tokenizer.has_more_data())
     }
 
     #[test]
     fn has_more_data_works() {
-        let lexer_data = "él";
-        let mut lexer = new(lexer_data);
+        let data = "él";
+        let mut tokenizer = new(data);
 
-        lexer.advance();
-        assert!(lexer.has_more_data());
+        tokenizer.advance();
+        assert!(tokenizer.has_more_data());
 
-        lexer.advance();
-        assert_eq!(lexer.has_more_data(), false);
+        tokenizer.advance();
+        assert!(!tokenizer.has_more_data());
     }
 
     #[test]
     fn current_char_returns_the_char_at_token_position() {
-        let lexer_data = "él";
-        let lexer = new(lexer_data);
+        let data = "él";
+        let tokenizer = new(data);
 
-        assert_eq!(lexer.current_char().unwrap(), 'é');
+        assert_eq!(tokenizer.current_char().unwrap(), 'é');
     }
 
     #[test]
     fn current_char_returns_none_if_at_the_end() {
-        let lexer_data = "él";
-        let mut lexer = new(lexer_data);
-        lexer.advance();
-        lexer.advance();
+        let data = "él";
+        let mut tokenizer = new(data);
+        tokenizer.advance();
+        tokenizer.advance();
 
-        assert_eq!(lexer.current_char(), None);
-    }
-
-    #[test]
-    fn tokenize_advances_token_start_to_cursor() {
-        let lexer_data = "élégant";
-        let mut lexer = new(lexer_data);
-        lexer.advance();
-        lexer.advance();
-        lexer.tokenize(Category::Text);
-
-        assert_eq!(lexer.token_start, 2);
+        assert_eq!(tokenizer.current_char(), None);
     }
 
     #[test]
     fn tokenize_creates_the_correct_token() {
-        let lexer_data = "élégant";
-        let mut lexer = new(lexer_data);
-        lexer.advance();
-        lexer.advance();
-        lexer.tokenize(Category::Text);
+        let data = "élégant";
+        let mut tokenizer = new(data);
+        tokenizer.advance();
+        tokenizer.advance();
+        tokenizer.tokenize(Category::Text);
 
-        let token = lexer.tokens.pop().unwrap();
+        let token = tokenizer.tokens.pop().unwrap();
         let expected_token = Token{ lexeme: "él".to_string(), category: Category::Text};
         assert_eq!(token, expected_token);
     }
 
     #[test]
     fn tokenize_does_nothing_if_range_is_empty() {
-        let lexer_data = "élégant";
-        let mut lexer = new(lexer_data);
-        lexer.tokenize(Category::Text);
+        let data = "élégant";
+        let mut tokenizer = new(data);
+        tokenizer.tokenize(Category::Text);
 
-        assert_eq!(lexer.tokens.len(), 0);
-        assert_eq!(lexer.token_start, 0);
-        assert_eq!(lexer.token_position, 0);
+        assert_eq!(tokenizer.tokens.len(), 0);
     }
 
     #[test]
     fn tokenize_next_tokenizes_previous_data_as_text() {
-        let lexer_data = "élégant";
-        let mut lexer = new(lexer_data);
-        lexer.advance();
-        lexer.advance();
-        lexer.tokenize_next(1, Category::Keyword);
+        let data = "élégant";
+        let mut tokenizer = new(data);
+        tokenizer.advance();
+        tokenizer.advance();
+        tokenizer.tokenize_next(1, Category::Keyword);
 
-        let token = lexer.tokens.remove(0);
+        let token = tokenizer.tokens.remove(0);
         let expected_token = Token{ lexeme: "él".to_string(), category: Category::Text};
         assert_eq!(token, expected_token);
     }
 
     #[test]
     fn tokenize_next_tokenizes_next_x_chars() {
-        let lexer_data = "élégant";
-        let mut lexer = new(lexer_data);
-        lexer.advance();
-        lexer.advance();
-        lexer.tokenize_next(5, Category::Keyword);
+        let data = "élégant";
+        let mut tokenizer = new(data);
+        tokenizer.advance();
+        tokenizer.advance();
+        tokenizer.tokenize_next(5, Category::Keyword);
 
-        let token = lexer.tokens.pop().unwrap();
+        let token = tokenizer.tokens.pop().unwrap();
         let expected_token = Token{ lexeme: "égant".to_string(), category: Category::Keyword};
         assert_eq!(token, expected_token);
     }
 
     #[test]
     fn tokenize_next_takes_at_most_what_is_left() {
-        let lexer_data = "élégant";
-        let mut lexer = new(lexer_data);
-        lexer.advance();
-        lexer.advance();
-        lexer.tokenize_next(15, Category::Keyword);
+        let data = "élégant";
+        let mut tokenizer = new(data);
+        tokenizer.advance();
+        tokenizer.advance();
+        tokenizer.tokenize_next(15, Category::Keyword);
 
-        let token = lexer.tokens.pop().unwrap();
+        let token = tokenizer.tokens.pop().unwrap();
         let expected_token = Token{ lexeme: "égant".to_string(), category: Category::Keyword};
         assert_eq!(token, expected_token);
     }
