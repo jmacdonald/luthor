@@ -34,19 +34,12 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
                     lexer.tokenize_next(1, Category::Bracket);
                 },
                 _ => {
-                    if lexer.token_position == lexer.token_start {
-                        let remaining_data =
-                            lexer.data[lexer.token_position..].to_string();
-
-                        if remaining_data.starts_with("true") {
-                            lexer.tokenize_next(4, Category::Boolean);
-                        } else if remaining_data.starts_with("false") {
-                            lexer.tokenize_next(5, Category::Boolean);
-                        } else if remaining_data.starts_with("null") {
-                            lexer.tokenize_next(4, Category::Keyword);
-                        } else {
-                            lexer.advance();
-                        }
+                    if lexer.starts_with("true") {
+                        lexer.tokenize_next(4, Category::Boolean);
+                    } else if lexer.starts_with("false") {
+                        lexer.tokenize_next(5, Category::Boolean);
+                    } else if lexer.starts_with("null") {
+                        lexer.tokenize_next(4, Category::Keyword);
                     } else {
                         lexer.advance();
                     }

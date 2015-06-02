@@ -1,8 +1,6 @@
 extern crate core;
 
 use std::mem;
-use std::cmp::min;
-use std::iter::FromIterator;
 use self::core::str::next_code_point;
 use super::token::Token;
 use super::token::Category;
@@ -12,13 +10,9 @@ pub struct StateFunction(pub fn(&mut Tokenizer) -> Option<StateFunction>);
 /// The Tokenizer type is used to produce and store
 /// tokens for the various language and format lexers.
 pub struct Tokenizer {
-    pub data: String,
-    binary_data: Vec<u8>,
+    data: Vec<u8>,
     head: usize,
     tail: usize,
-    char_count: usize,
-    pub token_start: usize,
-    pub token_position: usize,
     tokens: Vec<Token>,
     pub states: Vec<StateFunction>,
 }
@@ -32,13 +26,9 @@ pub struct Tokenizer {
 /// ```
 pub fn new(data: &str) -> Tokenizer {
     Tokenizer{
-      data: data.to_string(),
-      binary_data: data.to_string().into_bytes(),
+      data: data.to_string().into_bytes(),
       head: 0,
       tail: 0,
-      char_count: data.chars().count(),
-      token_start: 0,
-      token_position: 0,
       tokens: vec![],
       states: vec![]
     }
@@ -74,7 +64,6 @@ impl Tokenizer {
             // its byte length and advance the head appropriately.
             match self.current_char() {
                 Some(c) => {
-                    self.token_position += 1;
                     self.head += c.len_utf8();
                 },
                 None => (),
@@ -93,7 +82,7 @@ impl Tokenizer {
     /// assert_eq!(tokenizer.has_more_data(), false);
     /// ```
     pub fn has_more_data(&self) -> bool {
-        self.token_position < self.char_count
+        self.head < self.data.len()
     }
 
     /// Returns the character at the current position,
@@ -110,7 +99,7 @@ impl Tokenizer {
     pub fn current_char(&self) -> Option<char> {
         if self.has_more_data() {
             // Create an iterator for the remaining data.
-            let mut remaining_data = self.binary_data[self.head..].iter();
+            let mut remaining_data = self.data[self.head..].iter();
 
             // Pull the first UTF-8 byte sequence and convert it to a char.
             next_code_point(&mut remaining_data).map(|code_point| {
@@ -120,6 +109,38 @@ impl Tokenizer {
             })
         } else {
             None
+        }
+    }
+
+    /// Whether or not the remaining data starts
+    /// with the specified string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// assert!(tokenizer.starts_with("luth"));
+    /// tokenizer.advance();
+    /// assert!(tokenizer.starts_with("utho"));
+    /// assert!(!tokenizer.starts_with("luth"));
+    /// ```
+    pub fn starts_with(&self, data: &str) -> bool {
+        // Get a byte representation of the passed data
+        // that we'll compare to the binary buffer.
+        let data_bytes = data.as_bytes();
+
+        // Don't even bother if the remaining data is smaller
+        // than the string we're going to compare it to.
+        let remaining_data_size = self.data.len() - self.head;
+        if remaining_data_size >= data_bytes.len() {
+            // There's enough data left. Take a leading slice of the same size for comparison.
+            let leading_data = &self.data[self.head..(self.head+data_bytes.len())];
+
+            // Compare!
+            leading_data == data_bytes
+        } else {
+            // Not enough remaining data.
+            false
         }
     }
 
@@ -142,7 +163,7 @@ impl Tokenizer {
             // selected range out of the buffer.
             let lexeme = unsafe {
                 String::from_utf8_unchecked(
-                    self.binary_data[self.tail..self.head].to_vec()
+                    self.data[self.tail..self.head].to_vec()
                 )
             };
             let token = Token{
@@ -150,7 +171,6 @@ impl Tokenizer {
                 category: category,
             };
             self.tokens.push(token);
-            self.token_start = self.token_position;
             self.tail = self.head;
         }
     }
@@ -217,7 +237,7 @@ mod tests {
     }
 
     #[test]
-    fn current_char_returns_the_char_at_token_position() {
+    fn current_char_returns_the_char_at_head() {
         let data = "él";
         let tokenizer = new(data);
 

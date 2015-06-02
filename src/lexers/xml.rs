@@ -7,14 +7,10 @@ use token::Category;
 fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
         Some(c) => {
-            if lexer.token_position == lexer.token_start {
-                let remaining_data = lexer.data[lexer.token_position..].to_string();
-
-                if remaining_data.starts_with("</") {
-                    lexer.tokenize(Category::Identifier);
-                    lexer.tokenize_next(2, Category::Text);
-                    return Some(StateFunction(inside_tag))
-                }
+            if lexer.starts_with("</") {
+                lexer.tokenize(Category::Identifier);
+                lexer.tokenize_next(2, Category::Text);
+                return Some(StateFunction(inside_tag))
             }
             match c {
                 '<' => {
@@ -96,14 +92,10 @@ fn inside_tag(lexer: &mut Tokenizer) -> Option<StateFunction> {
                     Some(StateFunction(initial_state))
                 }
                 _ => {
-                    if lexer.token_position == lexer.token_start {
-                        let remaining_data = lexer.data[lexer.token_position..].to_string();
-
-                        if remaining_data.starts_with("/>") {
-                            lexer.tokenize(Category::Identifier);
-                            lexer.tokenize_next(2, Category::Text);
-                            return Some(StateFunction(initial_state))
-                        }
+                    if lexer.starts_with("/>") {
+                        lexer.tokenize(Category::Identifier);
+                        lexer.tokenize_next(2, Category::Text);
+                        return Some(StateFunction(initial_state))
                     }
 
                     lexer.advance();
