@@ -4,44 +4,44 @@ use tokenizer::StateFunction;
 use token::Token;
 use token::Category;
 
-fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
-    match lexer.current_char() {
+fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
         Some(c) => {
             match c {
                 '{' => {
-                    lexer.tokenize_next(1, Category::Brace);
+                    tokenizer.tokenize_next(1, Category::Brace);
                 },
                 '[' => {
-                    lexer.tokenize_next(1, Category::Bracket);
+                    tokenizer.tokenize_next(1, Category::Bracket);
                 },
                 ' ' | '\n' => {
-                    lexer.tokenize(Category::Text);
-                    lexer.advance();
+                    tokenizer.tokenize(Category::Text);
+                    tokenizer.advance();
                     return Some(StateFunction(whitespace));
                 },
                 '"' => {
-                    lexer.tokenize(Category::Text);
-                    lexer.advance();
+                    tokenizer.tokenize(Category::Text);
+                    tokenizer.advance();
                     return Some(StateFunction(inside_string));
                 },
                 ':' => {
-                    lexer.tokenize_next(1, Category::AssignmentOperator);
+                    tokenizer.tokenize_next(1, Category::AssignmentOperator);
                 },
                 '}' => {
-                    lexer.tokenize_next(1, Category::Brace);
+                    tokenizer.tokenize_next(1, Category::Brace);
                 },
                 ']' => {
-                    lexer.tokenize_next(1, Category::Bracket);
+                    tokenizer.tokenize_next(1, Category::Bracket);
                 },
                 _ => {
-                    if lexer.starts_with("true") {
-                        lexer.tokenize_next(4, Category::Boolean);
-                    } else if lexer.starts_with("false") {
-                        lexer.tokenize_next(5, Category::Boolean);
-                    } else if lexer.starts_with("null") {
-                        lexer.tokenize_next(4, Category::Keyword);
+                    if tokenizer.starts_with("true") {
+                        tokenizer.tokenize_next(4, Category::Boolean);
+                    } else if tokenizer.starts_with("false") {
+                        tokenizer.tokenize_next(5, Category::Boolean);
+                    } else if tokenizer.starts_with("null") {
+                        tokenizer.tokenize_next(4, Category::Keyword);
                     } else {
-                        lexer.advance();
+                        tokenizer.advance();
                     }
                 }
             }
@@ -50,70 +50,70 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
         }
 
         None => {
-            lexer.tokenize(Category::Text);
+            tokenizer.tokenize(Category::Text);
             None
         }
     }
 }
 
-fn inside_string(lexer: &mut Tokenizer) -> Option<StateFunction> {
-    match lexer.current_char() {
+fn inside_string(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
         Some(c) => {
             match c {
                 '"' => {
-                    lexer.advance();
-                    lexer.tokenize(Category::String);
+                    tokenizer.advance();
+                    tokenizer.tokenize(Category::String);
                     Some(StateFunction(initial_state))
                 },
                 '\\' => {
-                    lexer.advance();
-                    lexer.advance();
+                    tokenizer.advance();
+                    tokenizer.advance();
                     Some(StateFunction(inside_string))
                 }
                 _ => {
-                    lexer.advance();
+                    tokenizer.advance();
                     Some(StateFunction(inside_string))
                 }
             }
         }
 
         None => {
-            lexer.tokenize(Category::String);
+            tokenizer.tokenize(Category::String);
             None
         }
     }
 }
 
-fn whitespace(lexer: &mut Tokenizer) -> Option<StateFunction> {
-    match lexer.current_char() {
+fn whitespace(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
         Some(c) => {
             match c {
                 ' ' | '\n' => {
-                    lexer.advance();
+                    tokenizer.advance();
                     Some(StateFunction(whitespace))
                 },
                 _ => {
-                    lexer.tokenize(Category::Whitespace);
+                    tokenizer.tokenize(Category::Whitespace);
                     Some(StateFunction(initial_state))
                 }
             }
         }
 
         None => {
-            lexer.tokenize(Category::Whitespace);
+            tokenizer.tokenize(Category::Whitespace);
             None
         }
     }
 }
 
 pub fn lex(data: &str) -> Vec<Token> {
-    let mut lexer = new(data);
+    let mut tokenizer = new(data);
     let mut state_function = StateFunction(initial_state);
     loop {
         let StateFunction(actual_function) = state_function;
-        match actual_function(&mut lexer) {
+        match actual_function(&mut tokenizer) {
             Some(f) => state_function = f,
-            None => return lexer.tokens(),
+            None => return tokenizer.tokens(),
         }
     }
 }

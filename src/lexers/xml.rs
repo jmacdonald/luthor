@@ -4,27 +4,27 @@ use tokenizer::StateFunction;
 use token::Token;
 use token::Category;
 
-fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
-    match lexer.current_char() {
+fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
         Some(c) => {
-            if lexer.starts_with("</") {
-                lexer.tokenize(Category::Identifier);
-                lexer.tokenize_next(2, Category::Text);
+            if tokenizer.starts_with("</") {
+                tokenizer.tokenize(Category::Identifier);
+                tokenizer.tokenize_next(2, Category::Text);
                 return Some(StateFunction(inside_tag))
             }
             match c {
                 '<' => {
-                    lexer.tokenize_next(1, Category::Text);
+                    tokenizer.tokenize_next(1, Category::Text);
                     return Some(StateFunction(start_of_tag));
                 },
                 ' ' | '\n' => {
-                    lexer.tokenize(Category::Text);
-                    lexer.advance();
-                    lexer.states.push(StateFunction(initial_state));
+                    tokenizer.tokenize(Category::Text);
+                    tokenizer.advance();
+                    tokenizer.states.push(StateFunction(initial_state));
                     return Some(StateFunction(whitespace));
                 },
                 _ => {
-                    lexer.advance();
+                    tokenizer.advance();
                 }
             }
 
@@ -32,143 +32,143 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
         }
 
         None => {
-            lexer.tokenize(Category::Text);
+            tokenizer.tokenize(Category::Text);
             None
         }
     }
 }
 
-fn start_of_tag(lexer: &mut Tokenizer) -> Option<StateFunction> {
-    match lexer.current_char() {
+fn start_of_tag(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
         Some(c) => {
             match c {
                 ' ' | '\n' => {
-                    lexer.tokenize(Category::Identifier);
-                    lexer.states.push(StateFunction(inside_tag));
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.states.push(StateFunction(inside_tag));
                     return Some(StateFunction(whitespace));
                 },
                 '>' => {
-                    lexer.tokenize(Category::Identifier);
-                    lexer.tokenize_next(1, Category::Text);
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.tokenize_next(1, Category::Text);
                     Some(StateFunction(initial_state))
                 }
                 _ => {
-                    lexer.advance();
+                    tokenizer.advance();
                     Some(StateFunction(start_of_tag))
                 }
             }
         }
 
         None => {
-            lexer.tokenize(Category::Identifier);
+            tokenizer.tokenize(Category::Identifier);
             None
         }
     }
 }
 
-fn inside_tag(lexer: &mut Tokenizer) -> Option<StateFunction> {
-    match lexer.current_char() {
+fn inside_tag(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
         Some(c) => {
             match c {
                 '"' => {
-                    lexer.tokenize(Category::Identifier);
-                    lexer.advance();
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.advance();
                     Some(StateFunction(inside_string))
                 },
                 ' ' | '\n' => {
-                    lexer.tokenize(Category::Identifier);
-                    lexer.advance();
-                    lexer.states.push(StateFunction(inside_tag));
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.advance();
+                    tokenizer.states.push(StateFunction(inside_tag));
                     return Some(StateFunction(whitespace));
                 },
                 '=' => {
-                    lexer.tokenize(Category::Identifier);
-                    lexer.tokenize_next(1, Category::AssignmentOperator);
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.tokenize_next(1, Category::AssignmentOperator);
                     Some(StateFunction(inside_tag))
                 }
                 '>' => {
-                    lexer.tokenize(Category::Identifier);
-                    lexer.tokenize_next(1, Category::Text);
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.tokenize_next(1, Category::Text);
                     Some(StateFunction(initial_state))
                 }
                 _ => {
-                    if lexer.starts_with("/>") {
-                        lexer.tokenize(Category::Identifier);
-                        lexer.tokenize_next(2, Category::Text);
+                    if tokenizer.starts_with("/>") {
+                        tokenizer.tokenize(Category::Identifier);
+                        tokenizer.tokenize_next(2, Category::Text);
                         return Some(StateFunction(initial_state))
                     }
 
-                    lexer.advance();
+                    tokenizer.advance();
                     Some(StateFunction(inside_tag))
                 }
             }
         }
 
         None => {
-            lexer.tokenize(Category::Identifier);
+            tokenizer.tokenize(Category::Identifier);
             None
         }
     }
 }
 
-fn inside_string(lexer: &mut Tokenizer) -> Option<StateFunction> {
-    match lexer.current_char() {
+fn inside_string(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
         Some(c) => {
             match c {
                 '"' => {
-                    lexer.advance();
-                    lexer.tokenize(Category::String);
+                    tokenizer.advance();
+                    tokenizer.tokenize(Category::String);
                     Some(StateFunction(inside_tag))
                 },
                 '\\' => {
-                    lexer.advance();
-                    lexer.advance();
+                    tokenizer.advance();
+                    tokenizer.advance();
                     Some(StateFunction(inside_string))
                 }
                 _ => {
-                    lexer.advance();
+                    tokenizer.advance();
                     Some(StateFunction(inside_string))
                 }
             }
         }
 
         None => {
-            lexer.tokenize(Category::String);
+            tokenizer.tokenize(Category::String);
             None
         }
     }
 }
 
-fn whitespace(lexer: &mut Tokenizer) -> Option<StateFunction> {
-    match lexer.current_char() {
+fn whitespace(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
         Some(c) => {
             match c {
                 ' ' | '\n' => {
-                    lexer.advance();
+                    tokenizer.advance();
                     Some(StateFunction(whitespace))
                 },
                 _ => {
-                    lexer.tokenize(Category::Whitespace);
-                    Some(lexer.states.pop().unwrap())
+                    tokenizer.tokenize(Category::Whitespace);
+                    Some(tokenizer.states.pop().unwrap())
                 }
             }
         }
 
         None => {
-            lexer.tokenize(Category::Whitespace);
+            tokenizer.tokenize(Category::Whitespace);
             None
         }
     }
 }
 
 pub fn lex(data: &str) -> Vec<Token> {
-    let mut lexer = new(data);
+    let mut tokenizer = new(data);
     let mut state_function = StateFunction(initial_state);
     loop {
         let StateFunction(actual_function) = state_function;
-        match actual_function(&mut lexer) {
+        match actual_function(&mut tokenizer) {
             Some(f) => state_function = f,
-            None => return lexer.tokens(),
+            None => return tokenizer.tokens(),
         }
     }
 }
