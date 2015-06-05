@@ -12,6 +12,8 @@ pub enum Category {
     String,
     Boolean,
     Text,
+    Comment,
+    Method,
 }
 
 #[derive(PartialEq, Debug, Clone)]
