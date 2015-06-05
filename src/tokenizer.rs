@@ -71,20 +71,6 @@ impl Tokenizer {
         }
     }
 
-    /// Determines whether or not there is more unprocessed data.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut tokenizer = luthor::tokenizer::new("l");
-    /// assert_eq!(tokenizer.has_more_data(), true);
-    /// tokenizer.advance();
-    /// assert_eq!(tokenizer.has_more_data(), false);
-    /// ```
-    pub fn has_more_data(&self) -> bool {
-        self.head < self.data.len()
-    }
-
     /// Returns the character at the current position,
     /// unless all of the data has been processed.
     ///
@@ -203,6 +189,11 @@ impl Tokenizer {
         // Tokenize the marked characters.
         self.tokenize(category);
     }
+
+    /// Determines whether or not there is more unprocessed data.
+    fn has_more_data(&self) -> bool {
+        self.head < self.data.len()
+    }
 }
 
 #[cfg(test)]
@@ -222,18 +213,6 @@ mod tests {
         }
 
         assert!(!tokenizer.has_more_data())
-    }
-
-    #[test]
-    fn has_more_data_works() {
-        let data = "él";
-        let mut tokenizer = new(data);
-
-        tokenizer.advance();
-        assert!(tokenizer.has_more_data());
-
-        tokenizer.advance();
-        assert!(!tokenizer.has_more_data());
     }
 
     #[test]
