@@ -25,7 +25,7 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                     return Some(StateFunction(inside_string));
                 },
                 ':' => {
-                    tokenizer.tokenize_next(1, Category::AssignmentOperator);
+                    tokenizer.tokenize_next(1, Category::Operator);
                 },
                 '}' => {
                     tokenizer.tokenize_next(1, Category::Brace);
@@ -136,18 +136,18 @@ mod tests {
             Token{ lexeme: "{".to_string(), category: Category::Brace },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "\"key\"".to_string(), category: Category::String },
-            Token{ lexeme: ":".to_string(), category: Category::AssignmentOperator },
+            Token{ lexeme: ":".to_string(), category: Category::Operator },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "\"4032\"".to_string(), category: Category::String },
             Token{ lexeme: ",".to_string(), category: Category::Text },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "'single'".to_string(), category: Category::Text },
-            Token{ lexeme: ":".to_string(), category: Category::AssignmentOperator },
+            Token{ lexeme: ":".to_string(), category: Category::Operator },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "'quotes\\'',".to_string(), category: Category::Text },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "\"literals\"".to_string(), category: Category::String },
-            Token{ lexeme: ":".to_string(), category: Category::AssignmentOperator },
+            Token{ lexeme: ":".to_string(), category: Category::Operator },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "[".to_string(), category: Category::Bracket },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },

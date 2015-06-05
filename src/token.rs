@@ -6,7 +6,7 @@ pub enum Category {
     Brace,
     Bracket,
     Parenthesis,
-    AssignmentOperator,
+    Operator,
     Integer,
     Float,
     String,

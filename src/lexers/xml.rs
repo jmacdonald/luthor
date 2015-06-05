@@ -83,7 +83,7 @@ fn inside_tag(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                 },
                 '=' => {
                     tokenizer.tokenize(Category::Identifier);
-                    tokenizer.tokenize_next(1, Category::AssignmentOperator);
+                    tokenizer.tokenize_next(1, Category::Operator);
                     Some(StateFunction(inside_tag))
                 }
                 '>' => {
@@ -192,7 +192,7 @@ mod tests {
             Token{ lexeme: "tag_with_attribute".to_string(), category: Category::Identifier },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "attribute".to_string(), category: Category::Identifier },
-            Token{ lexeme: "=".to_string(), category: Category::AssignmentOperator },
+            Token{ lexeme: "=".to_string(), category: Category::Operator },
             Token{ lexeme: "\"value\"".to_string(), category: Category::String },
             Token{ lexeme: ">".to_string(), category: Category::Text },
             Token{ lexeme: "</".to_string(), category: Category::Text },
