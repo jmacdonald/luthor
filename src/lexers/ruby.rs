@@ -27,6 +27,10 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                 tokenizer.tokenize_next(3, Category::Keyword);
                 tokenizer.states.push(StateFunction(initial_state));
                 return Some(StateFunction(whitespace))
+            } else if ['+'].iter().any(|o| *o == c) {
+                tokenizer.tokenize(Category::Text);
+                tokenizer.tokenize_next(1, Category::Operator);
+                return Some(StateFunction(initial_state))
             }
 
             match c {
@@ -60,6 +64,10 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                 },
                 _ => {
                     tokenizer.advance();
+
+                    if c.is_numeric() {
+                        return Some(StateFunction(integer));
+                    }
                 }
             }
 
@@ -223,6 +231,25 @@ fn comment(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     }
 }
 
+fn integer(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
+        Some(c) => {
+            if c.is_numeric() {
+                tokenizer.advance();
+                Some(StateFunction(integer))
+            } else {
+                tokenizer.tokenize(Category::Integer);
+                Some(StateFunction(initial_state))
+            }
+        }
+
+        None => {
+            tokenizer.tokenize(Category::Integer);
+            None
+        }
+    }
+}
+
 pub fn lex(data: &str) -> Vec<Token> {
     let mut tokenizer = new(data);
     let mut state_function = StateFunction(initial_state);
@@ -274,6 +301,23 @@ mod tests {
             Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
             Token{ lexeme: "end".to_string(), category: Category::Keyword },
             Token{ lexeme: "\n".to_string(), category: Category::Whitespace }
+        ];
+
+        for (index, token) in tokens.iter().enumerate() {
+            assert_eq!(*token, expected_tokens[index]);
+        }
+    }
+
+    #[test]
+    fn it_identifies_integers_and_operators() {
+        let data = "123 + 456";
+        let tokens = lex(data);
+        let expected_tokens = vec![
+            Token{ lexeme: "123".to_string(), category: Category::Integer },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "+".to_string(), category: Category::Operator },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "456".to_string(), category: Category::Integer },
         ];
 
         for (index, token) in tokens.iter().enumerate() {
