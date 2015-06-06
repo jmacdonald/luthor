@@ -202,6 +202,10 @@ mod tests {
     use super::super::token::Token;
     use super::super::token::Category;
 
+    // Benchmarking
+    extern crate test;
+    use self::test::Bencher;
+
     #[test]
     fn advance_does_nothing_when_there_is_no_more_data() {
         let data = "élégant";
@@ -292,5 +296,19 @@ mod tests {
         let token = tokenizer.tokens.pop().unwrap();
         let expected_token = Token{ lexeme: "égant".to_string(), category: Category::Keyword};
         assert_eq!(token, expected_token);
+    }
+
+    #[bench]
+    fn bench_current_char(b: &mut Bencher) {
+        let data = include_str!("../test_data/data.json");
+        let mut tokenizer = new(data);
+        b.iter(|| tokenizer.current_char());
+    }
+
+    #[bench]
+    fn bench_starts_with(b: &mut Bencher) {
+        let data = include_str!("../test_data/data.json");
+        let mut tokenizer = new(data);
+        b.iter(|| tokenizer.starts_with("something"));
     }
 }
