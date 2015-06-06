@@ -1,7 +1,6 @@
 extern crate core;
 
-use std::mem;
-use self::core::str::next_code_point;
+use std::str::Chars;
 use super::token::Token;
 use super::token::Category;
 
@@ -9,10 +8,9 @@ pub struct StateFunction(pub fn(&mut Tokenizer) -> Option<StateFunction>);
 
 /// The Tokenizer type is used to produce and store
 /// tokens for the various language and format lexers.
-pub struct Tokenizer {
-    data: Vec<u8>,
-    head: usize,
-    tail: usize,
+pub struct Tokenizer<'a> {
+    data: Chars<'a>,
+    current_token: String,
     tokens: Vec<Token>,
     pub states: Vec<StateFunction>,
 }
@@ -26,15 +24,14 @@ pub struct Tokenizer {
 /// ```
 pub fn new(data: &str) -> Tokenizer {
     Tokenizer{
-      data: data.to_string().into_bytes(),
-      head: 0,
-      tail: 0,
+      data: data.chars(),
+      current_token: String::new(),
       tokens: vec![],
       states: vec![]
     }
 }
 
-impl Tokenizer {
+impl<'a> Tokenizer<'a> {
     /// Returns a copy of the tokens processed to date.
     ///
     /// # Examples
@@ -59,15 +56,9 @@ impl Tokenizer {
     /// assert_eq!(tokenizer.current_char().unwrap(), 'u');
     /// ```
     pub fn advance(&mut self) {
-        if self.has_more_data() {
-            // Get the current character so that we can calculate
-            // its byte length and advance the head appropriately.
-            match self.current_char() {
-                Some(c) => {
-                    self.head += c.len_utf8();
-                },
-                None => (),
-            }
+        match self.data.next() {
+            Some(c) => self.current_token.push(c),
+            None => ()
         }
     }
 
@@ -83,18 +74,9 @@ impl Tokenizer {
     /// assert_eq!(tokenizer.current_char(), None);
     /// ```
     pub fn current_char(&self) -> Option<char> {
-        if self.has_more_data() {
-            // Create an iterator for the remaining data.
-            let mut remaining_data = self.data[self.head..].iter();
-
-            // Pull the first UTF-8 byte sequence and convert it to a char.
-            next_code_point(&mut remaining_data).map(|code_point| {
-                unsafe {
-                    mem::transmute(code_point)
-                }
-            })
-        } else {
-            None
+        match self.data.clone().peekable().peek() {
+            Some(c) => Some(c.clone()),
+            None => None
         }
     }
 
@@ -111,23 +93,9 @@ impl Tokenizer {
     /// assert!(!tokenizer.starts_with("luth"));
     /// ```
     pub fn starts_with(&self, data: &str) -> bool {
-        // Get a byte representation of the passed data
-        // that we'll compare to the binary buffer.
-        let data_bytes = data.as_bytes();
-
-        // Don't even bother if the remaining data is smaller
-        // than the string we're going to compare it to.
-        let remaining_data_size = self.data.len() - self.head;
-        if remaining_data_size >= data_bytes.len() {
-            // There's enough data left. Take a leading slice of the same size for comparison.
-            let leading_data = &self.data[self.head..(self.head+data_bytes.len())];
-
-            // Compare!
-            leading_data == data_bytes
-        } else {
-            // Not enough remaining data.
-            false
-        }
+        // Take a segment of the same size.
+        let segment: String = self.data.clone().take(data.chars().count()).collect();
+        segment == data
     }
 
     /// Creates and stores a token with the given category containing any
@@ -144,20 +112,13 @@ impl Tokenizer {
     /// assert_eq!(tokenizer.tokens()[0].lexeme, "lu");
     /// ```
     pub fn tokenize(&mut self, category: Category) {
-        if self.head > self.tail {
-            // Build the lexeme by slicing the currently
-            // selected range out of the buffer.
-            let lexeme = unsafe {
-                String::from_utf8_unchecked(
-                    self.data[self.tail..self.head].to_vec()
-                )
-            };
+        if !self.current_token.is_empty() {
             let token = Token{
-                lexeme: lexeme,
+                lexeme: self.current_token.clone(),
                 category: category,
             };
             self.tokens.push(token);
-            self.tail = self.head;
+            self.current_token = String::new();
         }
     }
 
@@ -189,11 +150,6 @@ impl Tokenizer {
         // Tokenize the marked characters.
         self.tokenize(category);
     }
-
-    /// Determines whether or not there is more unprocessed data.
-    fn has_more_data(&self) -> bool {
-        self.head < self.data.len()
-    }
 }
 
 #[cfg(test)]
@@ -205,19 +161,6 @@ mod tests {
     // Benchmarking
     extern crate test;
     use self::test::Bencher;
-
-    #[test]
-    fn advance_does_nothing_when_there_is_no_more_data() {
-        let data = "élégant";
-        let mut tokenizer = new(data);
-
-        // Try to go beyond the last character.
-        for _ in 0..10 {
-            tokenizer.advance();
-        }
-
-        assert!(!tokenizer.has_more_data())
-    }
 
     #[test]
     fn current_char_returns_the_char_at_head() {
