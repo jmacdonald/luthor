@@ -92,10 +92,20 @@ impl<'a> Tokenizer<'a> {
     /// assert!(tokenizer.starts_with("utho"));
     /// assert!(!tokenizer.starts_with("luth"));
     /// ```
-    pub fn starts_with(&self, data: &str) -> bool {
-        // Take a segment of the same size.
-        let segment: String = self.data.clone().take(data.chars().count()).collect();
-        segment == data
+    pub fn starts_with(&self, subject: &str) -> bool {
+        // Duplicate the tokenizer's character iterator, so that we can
+        // advance it to check for equality without affecting the original.
+        let mut data_iter = self.data.clone();
+
+        // Check for equality, character by character. This is much
+        // faster than building a string of equal length from self.data
+        // and deferring to a straight string comparison using ==.
+        subject.chars().all(|c| {
+            match data_iter.next() {
+                Some(d) => c == d,
+                None => false
+            }
+        })
     }
 
     /// Creates and stores a token with the given category containing any
