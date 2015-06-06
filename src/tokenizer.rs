@@ -1,5 +1,3 @@
-extern crate core;
-
 use std::str::Chars;
 use super::token::Token;
 use super::token::Category;
