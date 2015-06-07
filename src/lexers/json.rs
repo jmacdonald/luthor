@@ -120,10 +120,6 @@ pub fn lex(data: &str) -> Vec<Token> {
 
 #[cfg(test)]
 mod tests {
-    // Benchmarking
-    extern crate test;
-    use self::test::Bencher;
-
     use super::lex;
     use token::Token;
     use token::Category;
@@ -207,11 +203,5 @@ mod tests {
         for (index, token) in tokens.iter().enumerate() {
             assert_eq!(*token, expected_tokens[index]);
         }
-    }
-
-    #[bench]
-    fn bench_lex(b: &mut Bencher) {
-        let data = include_str!("../../test_data/data.json");
-        b.iter(|| lex(data));
     }
 }
