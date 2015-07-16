@@ -1,11 +1,19 @@
+//! Utility module for lexer implementations,
+//! providing types to help manage states and tokens.
+
 use std::str::Chars;
 use super::token::Token;
 use super::token::Category;
 
+/// A recursive function type used by lexers to manage their state.
+/// Based on Rob Pike's "Lexical Scanning in Go" talk, these functions are
+/// invoked in a call/return loop (letting the current function determine
+/// the next) until a `None` value is returned, after which lexing is complete.
+///
+/// See the `lexers` module for examples.
 pub struct StateFunction(pub fn(&mut Tokenizer) -> Option<StateFunction>);
 
-/// The Tokenizer type is used to produce and store
-/// tokens for the various language and format lexers.
+/// The Tokenizer type is used to produce and store tokens for lexers.
 pub struct Tokenizer<'a> {
     data: Chars<'a>,
     current_token: String,
@@ -35,7 +43,9 @@ impl<'a> Tokenizer<'a> {
     /// # Examples
     ///
     /// ```
+    /// // Set up a new tokenizer.
     /// let tokenizer = luthor::tokenizer::new("luthor");
+    ///
     /// tokenizer.tokens();
     /// ```
     pub fn tokens(&self) -> Vec<Token> {
@@ -48,9 +58,16 @@ impl<'a> Tokenizer<'a> {
     /// # Examples
     ///
     /// ```
+    /// // Set up a new tokenizer.
     /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    ///
+    /// // Ensure that we're at the first character. 
     /// assert_eq!(tokenizer.current_char().unwrap(), 'l');
+    ///
+    /// // Consume the first character.
     /// tokenizer.advance();
+    ///
+    /// // Ensure that we're at the next character.
     /// assert_eq!(tokenizer.current_char().unwrap(), 'u');
     /// ```
     pub fn advance(&mut self) {
@@ -66,9 +83,16 @@ impl<'a> Tokenizer<'a> {
     /// # Examples
     ///
     /// ```
+    /// // Set up a new tokenizer.
     /// let mut tokenizer = luthor::tokenizer::new("l");
+    ///
+    /// // Ensure that the current character is correct.
     /// assert_eq!(tokenizer.current_char().unwrap(), 'l');
+    ///
+    /// // Consume the last bit of data.
     /// tokenizer.advance();
+    ///
+    /// // Ensure that there is no current character.
     /// assert_eq!(tokenizer.current_char(), None);
     /// ```
     pub fn current_char(&self) -> Option<char> {
@@ -84,10 +108,19 @@ impl<'a> Tokenizer<'a> {
     /// # Examples
     ///
     /// ```
+    /// // Set up a new tokenizer.
     /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    ///
+    /// // Check for a value we know the data starts with.
     /// assert!(tokenizer.starts_with("luth"));
+    ///
+    /// // Consume a character, advancing to the next.
     /// tokenizer.advance();
+    ///
+    /// // Check for a value we know the remaining data starts with.
     /// assert!(tokenizer.starts_with("utho"));
+    ///
+    /// // Check for a value we know the remaining data does not start with.
     /// assert!(!tokenizer.starts_with("luth"));
     /// ```
     pub fn starts_with(&self, subject: &str) -> bool {
@@ -113,10 +146,16 @@ impl<'a> Tokenizer<'a> {
     ///
     /// ```
     /// use luthor::token::Category;
+    ///
+    /// // Set up a new tokenizer.
     /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    ///
+    /// // Consume two characters and then tokenize them.
     /// tokenizer.advance();
     /// tokenizer.advance();
     /// tokenizer.tokenize(Category::Text);
+    ///
+    /// // Ensure that we have a correctly-categorized token.
     /// assert_eq!(tokenizer.tokens()[0].lexeme, "lu");
     /// ```
     pub fn tokenize(&mut self, category: Category) {
@@ -133,7 +172,7 @@ impl<'a> Tokenizer<'a> {
     /// Creates and stores a token with the given category and the
     /// next `amount` characters of the data. Before doing this, it
     /// tokenizes any previously processed characters with the generic
-    /// Category::Text category.
+    /// `Category::Text` category.
     ///
     /// # Examples
     ///
@@ -141,11 +180,22 @@ impl<'a> Tokenizer<'a> {
     /// use luthor::token::Category;
     /// use luthor::token::Token;
     ///
+    /// // Set up a new tokenizer.
     /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    ///
+    /// // Consume one character, and then tokenize the next 5.
     /// tokenizer.advance();
     /// tokenizer.tokenize_next(5, Category::Keyword);
-    /// assert_eq!(tokenizer.tokens()[0], Token{ lexeme: "l".to_string(), category: Category::Text});
-    /// assert_eq!(tokenizer.tokens()[1], Token{ lexeme: "uthor".to_string(), category: Category::Keyword});
+    ///
+    /// // Ensure that we have two properly-categorized tokens.
+    /// assert_eq!(
+    ///     tokenizer.tokens()[0],
+    ///     Token{ lexeme: "l".to_string(), category: Category::Text }
+    /// );
+    /// assert_eq!(
+    ///     tokenizer.tokens()[1],
+    ///     Token{ lexeme: "uthor".to_string(), category: Category::Keyword }
+    /// );
     /// ```
     pub fn tokenize_next(&mut self, amount: usize, category: Category) {
         // If there's any data that has yet

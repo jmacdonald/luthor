@@ -1,3 +1,5 @@
+//! A simple lexer for XML documents.
+
 use tokenizer::new;
 use tokenizer::Tokenizer;
 use tokenizer::StateFunction;
@@ -161,6 +163,7 @@ fn whitespace(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     }
 }
 
+/// Lexes an XML document.
 pub fn lex(data: &str) -> Vec<Token> {
     let mut tokenizer = new(data);
     let mut state_function = StateFunction(initial_state);

@@ -1,3 +1,5 @@
+//! A lexer for the JSON data format.
+
 use tokenizer::new;
 use tokenizer::Tokenizer;
 use tokenizer::StateFunction;
@@ -106,6 +108,7 @@ fn whitespace(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     }
 }
 
+/// Lexes a JSON document.
 pub fn lex(data: &str) -> Vec<Token> {
     let mut tokenizer = new(data);
     let mut state_function = StateFunction(initial_state);

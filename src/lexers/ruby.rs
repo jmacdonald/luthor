@@ -1,3 +1,5 @@
+//! A lexer for the Ruby programming language.
+
 use tokenizer::new;
 use tokenizer::Tokenizer;
 use tokenizer::StateFunction;
@@ -250,6 +252,7 @@ fn integer(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     }
 }
 
+/// Lexes a Ruby document.
 pub fn lex(data: &str) -> Vec<Token> {
     let mut tokenizer = new(data);
     let mut state_function = StateFunction(initial_state);

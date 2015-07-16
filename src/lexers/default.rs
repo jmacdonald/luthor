@@ -1,3 +1,7 @@
+//! A simple lexer that will produce text and whitespace categorized tokens,
+//! suitable as a fallback in situations where a format/language-specific
+//! equivalent is unavailable.
+
 use tokenizer::new;
 use tokenizer::Tokenizer;
 use tokenizer::StateFunction;
@@ -48,6 +52,7 @@ fn whitespace(lexer: &mut Tokenizer) -> Option<StateFunction> {
     }
 }
 
+/// Lexes any UTF-8 document.
 pub fn lex(data: &str) -> Vec<Token> {
     let mut lexer = new(data);
     let mut state_function = StateFunction(initial_state);
