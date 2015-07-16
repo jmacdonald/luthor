@@ -3,6 +3,8 @@
 name = "luthor"
 version = "0.1.1"
 authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
-description = "A collection of lexers for various languages and formats."
+description = "A collection of lexers for various languages/formats, and the tools required to build them."
+keywords = ["lex", "token", "syntax"]
 homepage = "https://github.com/jmacdonald/luthor"
+documentation = "http://jordanmacdonald.ca/rust/luthor"
 license = "MIT"
