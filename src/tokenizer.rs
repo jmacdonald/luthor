@@ -130,8 +130,8 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// Whether or not the remaining data starts with the specified lexeme.
-    /// Ensures that the specified lexeme is not just a prefix by checking
-    /// that the data that follows it is a newline, space, or nothing at all.
+    /// Ensures that the specified lexeme is not just a prefix by checking that
+    /// the data that follows it is a newline, space, comma, or nothing at all.
     ///
     /// # Examples
     ///
@@ -139,7 +139,7 @@ impl<'a> Tokenizer<'a> {
     /// use luthor::token::Category;
     ///
     /// // Set up a new tokenizer.
-    /// let mut tokenizer = luthor::tokenizer::new("lex\nluthor lib");
+    /// let mut tokenizer = luthor::tokenizer::new("lex\nluthor lib,rary");
     ///
     /// // Prefixes don't count.
     /// assert!(!tokenizer.starts_with_lexeme("le"));
@@ -156,8 +156,14 @@ impl<'a> Tokenizer<'a> {
     /// // Consume 7 characters, advancing to the next lexeme.
     /// tokenizer.tokenize_next(7, Category::Text);
     ///
-    /// // End of string delineates lexemes.
+    /// // Commas delineate lexemes.
     /// assert!(tokenizer.starts_with_lexeme("lib"));
+    ///
+    /// // Consume 4 characters, advancing to the next lexeme.
+    /// tokenizer.tokenize_next(4, Category::Text);
+    ///
+    /// // End of string delineates lexemes.
+    /// assert!(tokenizer.starts_with_lexeme("rary"));
     /// ```
     pub fn starts_with_lexeme(&self, lexeme: &str) -> bool {
         // Duplicate the tokenizer's character iterator so that we can
@@ -165,7 +171,7 @@ impl<'a> Tokenizer<'a> {
         let data_iter = self.data.clone();
 
         self.has_prefix(lexeme) && match data_iter.skip(lexeme.len()).next() {
-            Some(' ') | Some('\n') => true,
+            Some(' ') | Some('\n') | Some(',') => true,
             None => true,
             _ => false
         }
