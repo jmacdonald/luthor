@@ -102,41 +102,73 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    /// Whether or not the remaining data starts
-    /// with the specified string.
+
+    /// Whether or not the remaining data starts with the specified prefix.
     ///
     /// # Examples
     ///
     /// ```
     /// // Set up a new tokenizer.
-    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// let tokenizer = luthor::tokenizer::new("lex");
     ///
-    /// // Check for a value we know the data starts with.
-    /// assert!(tokenizer.starts_with("luth"));
-    ///
-    /// // Consume a character, advancing to the next.
-    /// tokenizer.advance();
-    ///
-    /// // Check for a value we know the remaining data starts with.
-    /// assert!(tokenizer.starts_with("utho"));
-    ///
-    /// // Check for a value we know the remaining data does not start with.
-    /// assert!(!tokenizer.starts_with("luth"));
+    /// assert!(tokenizer.has_prefix("le"));
     /// ```
-    pub fn starts_with(&self, subject: &str) -> bool {
-        // Duplicate the tokenizer's character iterator, so that we can
+    pub fn has_prefix(&self, prefix: &str) -> bool {
+        // Duplicate the tokenizer's character iterator so that we can
         // advance it to check for equality without affecting the original.
         let mut data_iter = self.data.clone();
 
-        // Check for equality, character by character. This is much
-        // faster than building a string of equal length from self.data
-        // and deferring to a straight string comparison using ==.
-        subject.chars().all(|c| {
+        // Check that the subject is a prefix, character by character.
+        // This is much faster than building a string of equal length from
+        // self.data and deferring to a straight string comparison using ==.
+        prefix.chars().all(|c| {
             match data_iter.next() {
                 Some(d) => c == d,
                 None => false
             }
         })
+    }
+
+    /// Whether or not the remaining data starts with the specified lexeme.
+    /// Ensures that the specified lexeme is not just a prefix by checking
+    /// that the data that follows it is a newline, space, or nothing at all.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use luthor::token::Category;
+    ///
+    /// // Set up a new tokenizer.
+    /// let mut tokenizer = luthor::tokenizer::new("lex\nluthor lib");
+    ///
+    /// // Prefixes don't count.
+    /// assert!(!tokenizer.starts_with_lexeme("le"));
+    ///
+    /// // Newlines delineate lexemes.
+    /// assert!(tokenizer.starts_with_lexeme("lex"));
+    ///
+    /// // Consume 4 characters, advancing to the next lexeme.
+    /// tokenizer.tokenize_next(4, Category::Text);
+    ///
+    /// // Spaces delineate lexemes.
+    /// assert!(tokenizer.starts_with_lexeme("luthor"));
+    ///
+    /// // Consume 7 characters, advancing to the next lexeme.
+    /// tokenizer.tokenize_next(7, Category::Text);
+    ///
+    /// // End of string delineates lexemes.
+    /// assert!(tokenizer.starts_with_lexeme("lib"));
+    /// ```
+    pub fn starts_with_lexeme(&self, lexeme: &str) -> bool {
+        // Duplicate the tokenizer's character iterator so that we can
+        // advance it to check for equality without affecting the original.
+        let data_iter = self.data.clone();
+
+        self.has_prefix(lexeme) && match data_iter.skip(lexeme.len()).next() {
+            Some(' ') | Some('\n') => true,
+            None => true,
+            _ => false
+        }
     }
 
     /// Creates and stores a token with the given category containing any

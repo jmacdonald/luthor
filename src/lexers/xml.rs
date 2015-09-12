@@ -9,7 +9,7 @@ use token::Category;
 fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     match tokenizer.current_char() {
         Some(c) => {
-            if tokenizer.starts_with("</") {
+            if tokenizer.has_prefix("</") {
                 tokenizer.tokenize(Category::Identifier);
                 tokenizer.tokenize_next(2, Category::Text);
                 return Some(StateFunction(inside_tag))
@@ -94,7 +94,7 @@ fn inside_tag(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                     Some(StateFunction(initial_state))
                 }
                 _ => {
-                    if tokenizer.starts_with("/>") {
+                    if tokenizer.has_prefix("/>") {
                         tokenizer.tokenize(Category::Identifier);
                         tokenizer.tokenize_next(2, Category::Text);
                         return Some(StateFunction(initial_state))

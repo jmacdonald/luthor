@@ -36,11 +36,11 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                     tokenizer.tokenize_next(1, Category::Bracket);
                 },
                 _ => {
-                    if tokenizer.starts_with("true") {
+                    if tokenizer.has_prefix("true") {
                         tokenizer.tokenize_next(4, Category::Boolean);
-                    } else if tokenizer.starts_with("false") {
+                    } else if tokenizer.has_prefix("false") {
                         tokenizer.tokenize_next(5, Category::Boolean);
-                    } else if tokenizer.starts_with("null") {
+                    } else if tokenizer.has_prefix("null") {
                         tokenizer.tokenize_next(4, Category::Keyword);
                     } else {
                         tokenizer.advance();
