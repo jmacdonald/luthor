@@ -102,7 +102,6 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-
     /// Whether or not the remaining data starts with the specified prefix.
     ///
     /// # Examples
@@ -245,6 +244,38 @@ impl<'a> Tokenizer<'a> {
 
         // Tokenize the marked characters.
         self.tokenize(category);
+    }
+
+    /// Consumes consecutive whitespace characters as a single token.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use luthor::token::Category;
+    /// use luthor::token::Token;
+    ///
+    /// let mut tokenizer = luthor::tokenizer::new("  \nluthor");
+    /// tokenizer.consume_whitespace();
+    ///
+    /// assert_eq!(
+    ///     tokenizer.tokens()[0],
+    ///     Token{ lexeme: "  \n".to_string(), category: Category::Whitespace }
+    /// );
+    /// ```
+    pub fn consume_whitespace(&mut self) {
+        // If there's any data that has yet
+        // to be tokenized, take care of that.
+        self.tokenize(Category::Text);
+
+        loop {
+            match self.current_char() {
+                Some(' ') | Some('\n') => self.advance(),
+                _ => {
+                    self.tokenize(Category::Whitespace);
+                    break
+                }
+            }
+        }
     }
 }
 
