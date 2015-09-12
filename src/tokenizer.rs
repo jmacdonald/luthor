@@ -263,16 +263,22 @@ impl<'a> Tokenizer<'a> {
     /// );
     /// ```
     pub fn consume_whitespace(&mut self) {
-        // If there's any data that has yet
-        // to be tokenized, take care of that.
-        self.tokenize(Category::Text);
-
+        let mut found_whitespace = false;
         loop {
             match self.current_char() {
-                Some(' ') | Some('\n') => self.advance(),
+                Some(' ') | Some('\n') => {
+                    if !found_whitespace {
+                        self.tokenize(Category::Text);
+                        found_whitespace = true;
+                    }
+
+                    self.advance();
+                },
                 _ => {
-                    self.tokenize(Category::Whitespace);
-                    break
+                    if found_whitespace {
+                        self.tokenize(Category::Whitespace);
+                    }
+                    return
                 }
             }
         }
@@ -362,5 +368,22 @@ mod tests {
         let token = tokenizer.tokens.pop().unwrap();
         let expected_token = Token{ lexeme: "égant".to_string(), category: Category::Keyword};
         assert_eq!(token, expected_token);
+    }
+
+    #[test]
+    fn consume_whitespace_handles_preexisting_noncategorized_chars() {
+        let data = "e  ";
+        let mut tokenizer = new(data);
+        tokenizer.advance();
+        tokenizer.consume_whitespace();
+
+        assert_eq!(
+            tokenizer.tokens()[0],
+            Token{ lexeme: "e".to_string(), category: Category::Text }
+        );
+        assert_eq!(
+            tokenizer.tokens()[1],
+            Token{ lexeme: "  ".to_string(), category: Category::Whitespace }
+        );
     }
 }
