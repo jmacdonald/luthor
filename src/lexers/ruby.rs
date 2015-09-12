@@ -7,30 +7,26 @@ use token::Token;
 use token::Category;
 
 fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    tokenizer.consume_whitespace();
     match tokenizer.current_char() {
         Some(c) => {
             if tokenizer.starts_with_lexeme("class") {
-                tokenizer.tokenize(Category::Text);
                 tokenizer.tokenize_next(5, Category::Keyword);
                 tokenizer.states.push(StateFunction(identifier));
                 return Some(StateFunction(whitespace))
             } else if tokenizer.starts_with_lexeme("def") {
-                tokenizer.tokenize(Category::Text);
                 tokenizer.tokenize_next(3, Category::Keyword);
                 tokenizer.states.push(StateFunction(method));
                 return Some(StateFunction(whitespace))
             } else if tokenizer.starts_with_lexeme("do") {
-                tokenizer.tokenize(Category::Text);
                 tokenizer.tokenize_next(2, Category::Keyword);
                 tokenizer.states.push(StateFunction(initial_state));
                 return Some(StateFunction(whitespace))
             } else if tokenizer.starts_with_lexeme("end") {
-                tokenizer.tokenize(Category::Text);
                 tokenizer.tokenize_next(3, Category::Keyword);
                 tokenizer.states.push(StateFunction(initial_state));
                 return Some(StateFunction(whitespace))
             } else if ['+'].iter().any(|o| *o == c) {
-                tokenizer.tokenize(Category::Text);
                 tokenizer.tokenize_next(1, Category::Operator);
                 return Some(StateFunction(initial_state))
             }
