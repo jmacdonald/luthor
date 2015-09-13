@@ -24,8 +24,13 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                 return Some(StateFunction(whitespace))
             } else if tokenizer.starts_with_lexeme("end") {
                 tokenizer.tokenize_next(3, Category::Keyword);
-                tokenizer.states.push(StateFunction(initial_state));
-                return Some(StateFunction(whitespace))
+                return Some(StateFunction(initial_state))
+            } else if tokenizer.starts_with_lexeme("true") {
+                tokenizer.tokenize_next(4, Category::Boolean);
+                return Some(StateFunction(initial_state))
+            } else if tokenizer.starts_with_lexeme("false") {
+                tokenizer.tokenize_next(5, Category::Boolean);
+                return Some(StateFunction(initial_state))
             } else if ['+'].iter().any(|o| *o == c) {
                 tokenizer.tokenize_next(1, Category::Operator);
                 return Some(StateFunction(initial_state))
@@ -55,10 +60,18 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                     return Some(StateFunction(comment));
                 },
                 '|' => {
-                    tokenizer.tokenize(Category::Text);
                     tokenizer.tokenize_next(1, Category::Text);
-                    tokenizer.states.push(StateFunction(identifier));
+                    tokenizer.states.push(StateFunction(argument));
                     return Some(StateFunction(whitespace));
+                },
+                '.' => {
+                    tokenizer.tokenize_next(1, Category::Text);
+                    return Some(StateFunction(initial_state));
+                },
+                '(' => {
+                    tokenizer.tokenize(Category::Call);
+                    tokenizer.tokenize_next(1, Category::Text);
+                    return Some(StateFunction(argument));
                 },
                 _ => {
                     tokenizer.advance();
@@ -146,13 +159,57 @@ fn whitespace(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                 },
                 _ => {
                     tokenizer.tokenize(Category::Whitespace);
-                    Some(tokenizer.states.pop().unwrap())
+                    match tokenizer.states.pop() {
+                        Some(state) => Some(state),
+                        None => Some(StateFunction(initial_state)),
+                    }
                 }
             }
         }
 
         None => {
             tokenizer.tokenize(Category::Whitespace);
+            None
+        }
+    }
+}
+
+fn argument(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    if tokenizer.starts_with_lexeme("true") {
+        tokenizer.tokenize_next(4, Category::Boolean);
+        return Some(StateFunction(argument))
+    } else if tokenizer.starts_with_lexeme("false") {
+        tokenizer.tokenize_next(5, Category::Boolean);
+        return Some(StateFunction(argument))
+    }
+
+    match tokenizer.current_char() {
+        Some(c) => {
+            match c {
+                ' ' | '\n' => {
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.states.push(StateFunction(argument));
+                    Some(StateFunction(whitespace))
+                },
+                '|' | ')' => {
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.tokenize_next(1, Category::Text);
+                    Some(StateFunction(initial_state))
+                },
+                '=' | ',' => {
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.tokenize_next(1, Category::Text);
+                    Some(StateFunction(argument))
+                },
+                _ => {
+                    tokenizer.advance();
+                    Some(StateFunction(argument))
+                }
+            }
+        }
+
+        None => {
+            tokenizer.tokenize(Category::Identifier);
             None
         }
     }
@@ -166,7 +223,7 @@ fn identifier(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                     tokenizer.tokenize(Category::Identifier);
                     Some(StateFunction(initial_state))
                 },
-                '|' => {
+                '|' | ')' | '-' => {
                     tokenizer.tokenize(Category::Identifier);
                     tokenizer.tokenize_next(1, Category::Text);
                     Some(StateFunction(initial_state))
@@ -179,7 +236,7 @@ fn identifier(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
         }
 
         None => {
-            tokenizer.tokenize(Category::Whitespace);
+            tokenizer.tokenize(Category::Identifier);
             None
         }
     }
@@ -256,7 +313,12 @@ pub fn lex(data: &str) -> Vec<Token> {
         let StateFunction(actual_function) = state_function;
         match actual_function(&mut tokenizer) {
             Some(f) => state_function = f,
-            None => return tokenizer.tokens(),
+            None => {
+                match tokenizer.states.pop() {
+                    Some(f) => state_function = f,
+                    None => return tokenizer.tokens(),
+                }
+            }
         }
     }
 }
@@ -284,7 +346,9 @@ mod tests {
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "[".to_string(), category: Category::Text },
             Token{ lexeme: "\"ruby\"".to_string(), category: Category::String },
-            Token{ lexeme: "].each".to_string(), category: Category::Text },
+            Token{ lexeme: "]".to_string(), category: Category::Text },
+            Token{ lexeme: ".".to_string(), category: Category::Text },
+            Token{ lexeme: "each".to_string(), category: Category::Text },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "do".to_string(), category: Category::Keyword },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
@@ -293,6 +357,18 @@ mod tests {
             Token{ lexeme: "|".to_string(), category: Category::Text },
             Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "'string'".to_string(), category: Category::String },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "method_call".to_string(), category: Category::Call },
+            Token{ lexeme: "(".to_string(), category: Category::Text },
+            Token{ lexeme: "argument".to_string(), category: Category::Identifier },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "=".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "false".to_string(), category: Category::Boolean },
+            Token{ lexeme: ",".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "another_argument".to_string(), category: Category::Identifier },
+            Token{ lexeme: ")".to_string(), category: Category::Text },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "end".to_string(), category: Category::Keyword },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
