@@ -132,6 +132,30 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
+    /// Returns the next non-whitespace character, without advancing the cursor.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // Set up a new tokenizer.
+    /// let mut tokenizer = luthor::tokenizer::new("  b");
+    ///
+    /// // Ask for the next non-whitespace character.
+    /// assert_eq!(tokenizer.next_non_whitespace_char().unwrap(), 'b');
+    ///
+    /// // Advance past the "b" character and ask again.
+    /// for _ in 0..3 { tokenizer.advance(); }
+    /// assert!(tokenizer.next_non_whitespace_char().is_none());
+    ///
+    /// ```
+    pub fn next_non_whitespace_char(&self) -> Option<char> {
+        // Duplicate the tokenizer's character iterator so that we can
+        // advance it to check for equality without affecting the original.
+        let mut data_iter = self.data.clone();
+
+        data_iter.find(|&c| c != ' ' && c != '\n')
+    }
+
     /// Whether or not the remaining data starts with the specified prefix.
     ///
     /// # Examples
