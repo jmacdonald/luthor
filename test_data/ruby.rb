@@ -6,6 +6,7 @@ class Ruby
       another_variable=1
       method_call(argument = false, another_argument)
       another_method_call
+      hash[:symbol_1234?] = { key: value }
     end
   end
 end

@@ -18,6 +18,7 @@ pub enum Category {
     Comment,
     Method,
     Call,
+    Literal,
 }
 
 /// A lexeme and category pairing. Tokens are the final product of a lexer; 

@@ -83,6 +83,26 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
             tokenizer.tokenize_next(1, Category::Text);
             Some(StateFunction(initial_state))
         },
+        Some('[') => {
+            tokenizer.tokenize(Category::Identifier);
+            tokenizer.tokenize_next(1, Category::Text);
+            Some(StateFunction(initial_state))
+        },
+        Some(']') => {
+            tokenizer.tokenize_next(1, Category::Text);
+            Some(StateFunction(initial_state))
+        },
+        Some(':') => {
+            if tokenizer.starts_with_lexeme(":") {
+                tokenizer.tokenize(Category::Literal);
+                tokenizer.tokenize_next(1, Category::Text);
+                tokenizer.consume_whitespace();
+                Some(StateFunction(initial_state))
+            } else {
+                tokenizer.advance();
+                Some(StateFunction(symbol))
+            }
+        },
         Some(c) => {
             tokenizer.advance();
 
@@ -318,6 +338,25 @@ fn integer(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     }
 }
 
+fn symbol(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
+        Some(c) => {
+            if c.is_alphanumeric() || c == '_' || c == '?' {
+                tokenizer.advance();
+                Some(StateFunction(symbol))
+            } else {
+                tokenizer.tokenize(Category::Literal);
+                Some(StateFunction(initial_state))
+            }
+        }
+
+        None => {
+            tokenizer.tokenize(Category::Literal);
+            None
+        }
+    }
+}
+
 /// Lexes a Ruby document.
 pub fn lex(data: &str) -> Vec<Token> {
     let mut tokenizer = new(data);
@@ -395,6 +434,22 @@ mod tests {
             Token{ lexeme: ")".to_string(), category: Category::Text },
             Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "another_method_call".to_string(), category: Category::Text },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "hash".to_string(), category: Category::Identifier },
+            Token{ lexeme: "[".to_string(), category: Category::Text },
+            Token{ lexeme: ":symbol_1234?".to_string(), category: Category::Literal },
+            Token{ lexeme: "]".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "=".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "{".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "key".to_string(), category: Category::Literal },
+            Token{ lexeme: ":".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "value".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "}".to_string(), category: Category::Text },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "end".to_string(), category: Category::Keyword },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
