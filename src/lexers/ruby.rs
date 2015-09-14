@@ -8,81 +8,75 @@ use token::Category;
 
 fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     tokenizer.consume_whitespace();
+
+    if tokenizer.starts_with_lexeme("class") {
+        tokenizer.tokenize_next(5, Category::Keyword);
+        tokenizer.states.push(StateFunction(identifier));
+        return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("def") {
+        tokenizer.tokenize_next(3, Category::Keyword);
+        tokenizer.states.push(StateFunction(method));
+        return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("do") {
+        tokenizer.tokenize_next(2, Category::Keyword);
+        return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("if") {
+        tokenizer.tokenize_next(2, Category::Keyword);
+        return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("end") {
+        tokenizer.tokenize_next(3, Category::Keyword);
+        return Some(StateFunction(initial_state))
+    } else if tokenizer.starts_with_lexeme("true") {
+        tokenizer.tokenize_next(4, Category::Boolean);
+        return Some(StateFunction(initial_state))
+    } else if tokenizer.starts_with_lexeme("false") {
+        tokenizer.tokenize_next(5, Category::Boolean);
+        return Some(StateFunction(initial_state))
+    }
+
     match tokenizer.current_char() {
-        Some(c) => {
-            if tokenizer.starts_with_lexeme("class") {
-                tokenizer.tokenize_next(5, Category::Keyword);
-                tokenizer.states.push(StateFunction(identifier));
-                return Some(StateFunction(whitespace))
-            } else if tokenizer.starts_with_lexeme("def") {
-                tokenizer.tokenize_next(3, Category::Keyword);
-                tokenizer.states.push(StateFunction(method));
-                return Some(StateFunction(whitespace))
-            } else if tokenizer.starts_with_lexeme("do") {
-                tokenizer.tokenize_next(2, Category::Keyword);
-                tokenizer.states.push(StateFunction(initial_state));
-                return Some(StateFunction(whitespace))
-            } else if tokenizer.starts_with_lexeme("end") {
-                tokenizer.tokenize_next(3, Category::Keyword);
-                return Some(StateFunction(initial_state))
-            } else if tokenizer.starts_with_lexeme("true") {
-                tokenizer.tokenize_next(4, Category::Boolean);
-                return Some(StateFunction(initial_state))
-            } else if tokenizer.starts_with_lexeme("false") {
-                tokenizer.tokenize_next(5, Category::Boolean);
-                return Some(StateFunction(initial_state))
-            } else if ['+'].iter().any(|o| *o == c) {
-                tokenizer.tokenize_next(1, Category::Operator);
-                return Some(StateFunction(initial_state))
-            }
-
-            match c {
-                '"' => {
-                    tokenizer.tokenize(Category::Text);
-                    tokenizer.advance();
-                    return Some(StateFunction(inside_string));
-                },
-                '\'' => {
-                    tokenizer.tokenize(Category::Text);
-                    tokenizer.advance();
-                    return Some(StateFunction(inside_single_quote_string));
-                },
-                ' ' | '\n' => {
-                    tokenizer.tokenize(Category::Text);
-                    tokenizer.advance();
-                    tokenizer.states.push(StateFunction(initial_state));
-                    return Some(StateFunction(whitespace));
-                },
-                '#' => {
-                    tokenizer.tokenize(Category::Text);
-                    tokenizer.advance();
-                    tokenizer.states.push(StateFunction(initial_state));
-                    return Some(StateFunction(comment));
-                },
-                '|' => {
-                    tokenizer.tokenize_next(1, Category::Text);
-                    tokenizer.states.push(StateFunction(argument));
-                    return Some(StateFunction(whitespace));
-                },
-                '.' => {
-                    tokenizer.tokenize_next(1, Category::Text);
-                    return Some(StateFunction(initial_state));
-                },
-                '(' => {
-                    tokenizer.tokenize(Category::Call);
-                    tokenizer.tokenize_next(1, Category::Text);
-                    return Some(StateFunction(argument));
-                },
-                _ => {
-                    tokenizer.advance();
-
-                    if c.is_numeric() {
-                        return Some(StateFunction(integer));
-                    }
-                }
-            }
-
+        Some('"') => {
+            tokenizer.tokenize(Category::Text);
+            tokenizer.advance();
+            Some(StateFunction(inside_string))
+        },
+        Some('\'') => {
+            tokenizer.tokenize(Category::Text);
+            tokenizer.advance();
+            Some(StateFunction(inside_single_quote_string))
+        },
+        Some('#') => {
+            tokenizer.tokenize(Category::Text);
+            tokenizer.advance();
+            tokenizer.states.push(StateFunction(initial_state));
+            Some(StateFunction(comment))
+        },
+        Some('|') => {
+            tokenizer.tokenize_next(1, Category::Text);
+            tokenizer.states.push(StateFunction(argument));
+            Some(StateFunction(whitespace))
+        },
+        Some('.') => {
+            tokenizer.tokenize_next(1, Category::Text);
             Some(StateFunction(initial_state))
+        },
+        Some('(') => {
+            tokenizer.tokenize(Category::Call);
+            tokenizer.tokenize_next(1, Category::Text);
+            Some(StateFunction(argument))
+        },
+        Some('+') => {
+            tokenizer.tokenize_next(1, Category::Operator);
+            Some(StateFunction(initial_state))
+        },
+        Some(c) => {
+            tokenizer.advance();
+
+            if c.is_numeric() {
+                Some(StateFunction(integer))
+            } else {
+                Some(StateFunction(initial_state))
+            }
         }
 
         None => {
