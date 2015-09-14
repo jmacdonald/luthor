@@ -7,8 +7,6 @@ use token::Token;
 use token::Category;
 
 fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
-    tokenizer.consume_whitespace();
-
     if tokenizer.starts_with_lexeme("class") {
         tokenizer.tokenize_next(5, Category::Keyword);
         tokenizer.states.push(StateFunction(identifier));
@@ -67,6 +65,22 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
         },
         Some('+') => {
             tokenizer.tokenize_next(1, Category::Operator);
+            Some(StateFunction(initial_state))
+        },
+        Some(' ') | Some('\n') => {
+            match tokenizer.next_non_whitespace_char() {
+                Some('=') => {
+                    tokenizer.tokenize(Category::Identifier);
+                    tokenizer.consume_whitespace();
+                    tokenizer.tokenize_next(1, Category::Text);
+                },
+                _ => tokenizer.consume_whitespace(),
+            }
+            Some(StateFunction(initial_state))
+        },
+        Some('=') => {
+            tokenizer.tokenize(Category::Identifier);
+            tokenizer.tokenize_next(1, Category::Text);
             Some(StateFunction(initial_state))
         },
         Some(c) => {
@@ -358,7 +372,15 @@ mod tests {
             Token{ lexeme: "string".to_string(), category: Category::Identifier },
             Token{ lexeme: "|".to_string(), category: Category::Text },
             Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "variable".to_string(), category: Category::Identifier },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "=".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "'string'".to_string(), category: Category::String },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "another_variable".to_string(), category: Category::Identifier },
+            Token{ lexeme: "=".to_string(), category: Category::Text },
+            Token{ lexeme: "1".to_string(), category: Category::Integer },
             Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "method_call".to_string(), category: Category::Call },
             Token{ lexeme: "(".to_string(), category: Category::Text },
@@ -371,6 +393,8 @@ mod tests {
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "another_argument".to_string(), category: Category::Identifier },
             Token{ lexeme: ")".to_string(), category: Category::Text },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "another_method_call".to_string(), category: Category::Text },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "end".to_string(), category: Category::Keyword },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
