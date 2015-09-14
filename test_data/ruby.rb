@@ -1,5 +1,5 @@
 class Ruby
-  def method
+  def method(argument)
     # comment
     ["ruby"].each do |string|
       'string'

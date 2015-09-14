@@ -250,6 +250,11 @@ fn method(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                     tokenizer.tokenize(Category::Method);
                     Some(StateFunction(initial_state))
                 },
+                '(' => {
+                    tokenizer.tokenize(Category::Method);
+                    tokenizer.tokenize_next(1, Category::Text);
+                    Some(StateFunction(argument))
+                },
                 _ => {
                     tokenizer.advance();
                     Some(StateFunction(method))
@@ -341,6 +346,9 @@ mod tests {
             Token{ lexeme: "def".to_string(), category: Category::Keyword },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "method".to_string(), category: Category::Method },
+            Token{ lexeme: "(".to_string(), category: Category::Text },
+            Token{ lexeme: "argument".to_string(), category: Category::Identifier },
+            Token{ lexeme: ")".to_string(), category: Category::Text },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "# comment".to_string(), category: Category::Comment },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
