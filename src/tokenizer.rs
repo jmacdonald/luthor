@@ -38,18 +38,48 @@ pub fn new(data: &str) -> Tokenizer {
 }
 
 impl<'a> Tokenizer<'a> {
-    /// Returns a copy of the tokens processed to date.
+    /// Returns a copy of the tokens processed to date, in addition to any
+    /// in-progress or remaining data appended as a text-category token.
+    /// As a result, the returned tokens always produce the original dataset
+    /// when their lexemes are concatenated.
     ///
     /// # Examples
     ///
     /// ```
-    /// // Set up a new tokenizer.
-    /// let tokenizer = luthor::tokenizer::new("luthor");
+    /// use luthor::token::{Category, Token};
     ///
-    /// tokenizer.tokens();
+    /// // Set up a new tokenizer.
+    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// tokenizer.tokenize_next(2, Category::Keyword);
+    ///
+    /// assert_eq!(
+    ///     tokenizer.tokens(),
+    ///     vec![
+    ///         Token{ lexeme: "lu".to_string(), category: Category::Keyword },
+    ///         Token{ lexeme: "thor".to_string(), category: Category::Text }
+    ///     ]
+    /// );
+    ///
     /// ```
     pub fn tokens(&self) -> Vec<Token> {
-        self.tokens.clone()
+        let mut tokens = self.tokens.clone();
+
+        // Duplicate the tokenizer's character iterator so that we can
+        // advance it to check for equality without affecting the original.
+        let data_iter = self.data.clone();
+
+        // Append any remaining data to the in-progress token.
+        let mut remaining_data = self.current_token.clone();
+        for c in data_iter {
+            remaining_data.push(c);
+        }
+            
+        // If there was any remaining or in-progress data, add it as a text token.
+        if !remaining_data.is_empty() {
+            tokens.push(Token{ lexeme: remaining_data, category: Category::Text});
+        }
+
+        tokens
     }
 
     /// Moves to the next character in the data.
@@ -384,6 +414,27 @@ mod tests {
         assert_eq!(
             tokenizer.tokens()[1],
             Token{ lexeme: "  ".to_string(), category: Category::Whitespace }
+        );
+    }
+
+    #[test]
+    fn tokens_returns_unprocessed_data_as_text_token() {
+        let tokenizer = new("luthor");
+
+        assert_eq!(
+            tokenizer.tokens()[0],
+            Token{ lexeme: "luthor".to_string(), category: Category::Text }
+        );
+    }
+
+    #[test]
+    fn tokens_joins_advanced_data_with_unprocessed_data_as_text_token() {
+        let mut tokenizer = new("luthor");
+        tokenizer.advance();
+
+        assert_eq!(
+            tokenizer.tokens()[0],
+            Token{ lexeme: "luthor".to_string(), category: Category::Text }
         );
     }
 }
