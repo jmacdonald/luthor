@@ -2,4 +2,5 @@
 pub mod json;
 pub mod xml;
 pub mod ruby;
+pub mod rust;
 pub mod default;
