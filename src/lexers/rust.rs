@@ -35,6 +35,16 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
         tokenizer.states.push(StateFunction(identifier));
 
         return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("for") {
+        tokenizer.tokenize_next(3, Category::Keyword);
+        tokenizer.states.push(StateFunction(identifier));
+
+        return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("in") {
+        tokenizer.tokenize_next(2, Category::Keyword);
+        tokenizer.states.push(StateFunction(identifier));
+
+        return Some(StateFunction(whitespace))
     } else if tokenizer.starts_with_lexeme("fn") {
         tokenizer.tokenize_next(2, Category::Keyword);
         tokenizer.states.push(StateFunction(function));
@@ -170,6 +180,11 @@ fn inside_single_quote_string(tokenizer: &mut Tokenizer) -> Option<StateFunction
                     tokenizer.advance();
                     Some(StateFunction(inside_single_quote_string))
                 }
+                ':' => {
+                    tokenizer.advance();
+                    tokenizer.tokenize(Category::Identifier);
+                    Some(StateFunction(initial_state))
+                },
                 _ => {
                     tokenizer.advance();
                     Some(StateFunction(inside_single_quote_string))
@@ -405,6 +420,18 @@ mod tests {
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "\"string\"".to_string(), category: Category::String },
             Token{ lexeme: ";".to_string(), category: Category::Text },
+            Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "'loop_name:".to_string(), category: Category::Identifier },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "for".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "value".to_string(), category: Category::Identifier },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "in".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "collection".to_string(), category: Category::Identifier },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "{}".to_string(), category: Category::Text },
             Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
             Token{ lexeme: "}".to_string(), category: Category::Text },
         ];
