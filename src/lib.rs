@@ -2,4 +2,6 @@
 //! It also exposes types that aid in building lexers of your own.
 pub mod lexers;
 pub mod token;
-pub mod tokenizer;
+mod tokenizer;
+
+pub use tokenizer::{Tokenizer, StateFunction};

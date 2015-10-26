@@ -1,10 +1,7 @@
 //! A lexer for the Ruby programming language.
 
-use tokenizer::new;
-use tokenizer::Tokenizer;
-use tokenizer::StateFunction;
-use token::Token;
-use token::Category;
+use token::{Category, Token};
+use tokenizer::{Tokenizer, StateFunction};
 
 fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     if tokenizer.starts_with_lexeme("class") {
@@ -359,7 +356,7 @@ fn symbol(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
 
 /// Lexes a Ruby document.
 pub fn lex(data: &str) -> Vec<Token> {
-    let mut tokenizer = new(data);
+    let mut tokenizer = Tokenizer::new(data);
     let mut state_function = StateFunction(initial_state);
     loop {
         let StateFunction(actual_function) = state_function;

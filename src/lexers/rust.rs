@@ -1,10 +1,7 @@
 //! A lexer for the Ruby programming language.
 
-use tokenizer::new;
-use tokenizer::Tokenizer;
-use tokenizer::StateFunction;
-use token::Token;
-use token::Category;
+use token::{Category, Token};
+use tokenizer::{Tokenizer, StateFunction};
 
 fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     for keyword in vec!["pub", "let", "mut", "match", "loop"] {
@@ -361,7 +358,7 @@ fn integer(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
 }
 
 pub fn lex(data: &str) -> Vec<Token> {
-    let mut tokenizer = new(data);
+    let mut tokenizer = Tokenizer::new(data);
     let mut state_function = StateFunction(initial_state);
     loop {
         let StateFunction(actual_function) = state_function;

@@ -2,11 +2,8 @@
 //! suitable as a fallback in situations where a format/language-specific
 //! equivalent is unavailable.
 
-use tokenizer::new;
-use tokenizer::Tokenizer;
-use tokenizer::StateFunction;
-use token::Token;
-use token::Category;
+use token::{Category, Token};
+use tokenizer::{Tokenizer, StateFunction};
 
 fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
@@ -54,7 +51,7 @@ fn whitespace(lexer: &mut Tokenizer) -> Option<StateFunction> {
 
 /// Lexes any UTF-8 document.
 pub fn lex(data: &str) -> Vec<Token> {
-    let mut lexer = new(data);
+    let mut lexer = Tokenizer::new(data);
     let mut state_function = StateFunction(initial_state);
     loop {
         let StateFunction(actual_function) = state_function;

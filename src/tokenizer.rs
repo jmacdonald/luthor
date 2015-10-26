@@ -21,23 +21,23 @@ pub struct Tokenizer<'a> {
     pub states: Vec<StateFunction>,
 }
 
-/// Initializes a new tokenizer with the given data.
-///
-/// # Examples
-///
-/// ```
-/// let tokenizer = luthor::tokenizer::new("luthor");
-/// ```
-pub fn new(data: &str) -> Tokenizer {
-    Tokenizer{
-      data: data.chars(),
-      current_token: String::new(),
-      tokens: vec![],
-      states: vec![]
-    }
-}
-
 impl<'a> Tokenizer<'a> {
+    /// Initializes a new tokenizer with the given data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let tokenizer = luthor::Tokenizer::new("luthor");
+    /// ```
+    pub fn new(data: &str) -> Tokenizer {
+        Tokenizer{
+          data: data.chars(),
+          current_token: String::new(),
+          tokens: vec![],
+          states: vec![]
+        }
+    }
+
     /// Returns a copy of the tokens processed to date, in addition to any
     /// in-progress or remaining data appended as a text-category token.
     /// As a result, the returned tokens always produce the original dataset
@@ -49,7 +49,7 @@ impl<'a> Tokenizer<'a> {
     /// use luthor::token::{Category, Token};
     ///
     /// // Set up a new tokenizer.
-    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// let mut tokenizer = luthor::Tokenizer::new("luthor");
     /// tokenizer.tokenize_next(2, Category::Keyword);
     ///
     /// assert_eq!(
@@ -73,7 +73,7 @@ impl<'a> Tokenizer<'a> {
         for c in data_iter {
             remaining_data.push(c);
         }
-            
+
         // If there was any remaining or in-progress data, add it as a text token.
         if !remaining_data.is_empty() {
             tokens.push(Token{ lexeme: remaining_data, category: Category::Text});
@@ -89,9 +89,9 @@ impl<'a> Tokenizer<'a> {
     ///
     /// ```
     /// // Set up a new tokenizer.
-    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// let mut tokenizer = luthor::Tokenizer::new("luthor");
     ///
-    /// // Ensure that we're at the first character. 
+    /// // Ensure that we're at the first character.
     /// assert_eq!(tokenizer.current_char().unwrap(), 'l');
     ///
     /// // Consume the first character.
@@ -114,7 +114,7 @@ impl<'a> Tokenizer<'a> {
     ///
     /// ```
     /// // Set up a new tokenizer.
-    /// let mut tokenizer = luthor::tokenizer::new("l");
+    /// let mut tokenizer = luthor::Tokenizer::new("l");
     ///
     /// // Ensure that the current character is correct.
     /// assert_eq!(tokenizer.current_char().unwrap(), 'l');
@@ -138,7 +138,7 @@ impl<'a> Tokenizer<'a> {
     ///
     /// ```
     /// // Set up a new tokenizer.
-    /// let mut tokenizer = luthor::tokenizer::new("  b");
+    /// let mut tokenizer = luthor::Tokenizer::new("  b");
     ///
     /// // Ask for the next non-whitespace character.
     /// assert_eq!(tokenizer.next_non_whitespace_char().unwrap(), 'b');
@@ -162,7 +162,7 @@ impl<'a> Tokenizer<'a> {
     ///
     /// ```
     /// // Set up a new tokenizer.
-    /// let tokenizer = luthor::tokenizer::new("lex");
+    /// let tokenizer = luthor::Tokenizer::new("lex");
     ///
     /// assert!(tokenizer.has_prefix("le"));
     /// ```
@@ -192,7 +192,7 @@ impl<'a> Tokenizer<'a> {
     /// use luthor::token::Category;
     ///
     /// // Set up a new tokenizer.
-    /// let mut tokenizer = luthor::tokenizer::new("lex\nluthor lib,rary");
+    /// let mut tokenizer = luthor::Tokenizer::new("lex\nluthor lib,rary");
     ///
     /// // Prefixes don't count.
     /// assert!(!tokenizer.starts_with_lexeme("le"));
@@ -239,7 +239,7 @@ impl<'a> Tokenizer<'a> {
     /// use luthor::token::Category;
     ///
     /// // Set up a new tokenizer.
-    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// let mut tokenizer = luthor::Tokenizer::new("luthor");
     ///
     /// // Consume two characters and then tokenize them.
     /// tokenizer.advance();
@@ -272,7 +272,7 @@ impl<'a> Tokenizer<'a> {
     /// use luthor::token::Token;
     ///
     /// // Set up a new tokenizer.
-    /// let mut tokenizer = luthor::tokenizer::new("luthor");
+    /// let mut tokenizer = luthor::Tokenizer::new("luthor");
     ///
     /// // Consume one character, and then tokenize the next 5.
     /// tokenizer.advance();
@@ -308,7 +308,7 @@ impl<'a> Tokenizer<'a> {
     /// use luthor::token::Category;
     /// use luthor::token::Token;
     ///
-    /// let mut tokenizer = luthor::tokenizer::new("  \nluthor");
+    /// let mut tokenizer = luthor::Tokenizer::new("  \nluthor");
     /// tokenizer.consume_whitespace();
     ///
     /// assert_eq!(
@@ -341,14 +341,13 @@ impl<'a> Tokenizer<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::new;
-    use super::super::token::Token;
-    use super::super::token::Category;
+    use tokenizer::Tokenizer;
+    use token::{Category, Token};
 
     #[test]
     fn current_char_returns_the_char_at_head() {
         let data = "él";
-        let tokenizer = new(data);
+        let tokenizer = Tokenizer::new(data);
 
         assert_eq!(tokenizer.current_char().unwrap(), 'é');
     }
@@ -356,7 +355,7 @@ mod tests {
     #[test]
     fn current_char_returns_none_if_at_the_end() {
         let data = "él";
-        let mut tokenizer = new(data);
+        let mut tokenizer = Tokenizer::new(data);
         tokenizer.advance();
         tokenizer.advance();
 
@@ -366,7 +365,7 @@ mod tests {
     #[test]
     fn tokenize_creates_the_correct_token() {
         let data = "élégant";
-        let mut tokenizer = new(data);
+        let mut tokenizer = Tokenizer::new(data);
         tokenizer.advance();
         tokenizer.advance();
         tokenizer.tokenize(Category::Text);
@@ -379,7 +378,7 @@ mod tests {
     #[test]
     fn tokenize_does_nothing_if_range_is_empty() {
         let data = "élégant";
-        let mut tokenizer = new(data);
+        let mut tokenizer = Tokenizer::new(data);
         tokenizer.tokenize(Category::Text);
 
         assert_eq!(tokenizer.tokens.len(), 0);
@@ -388,7 +387,7 @@ mod tests {
     #[test]
     fn tokenize_next_tokenizes_previous_data_as_text() {
         let data = "élégant";
-        let mut tokenizer = new(data);
+        let mut tokenizer = Tokenizer::new(data);
         tokenizer.advance();
         tokenizer.advance();
         tokenizer.tokenize_next(1, Category::Keyword);
@@ -401,7 +400,7 @@ mod tests {
     #[test]
     fn tokenize_next_tokenizes_next_x_chars() {
         let data = "élégant";
-        let mut tokenizer = new(data);
+        let mut tokenizer = Tokenizer::new(data);
         tokenizer.advance();
         tokenizer.advance();
         tokenizer.tokenize_next(5, Category::Keyword);
@@ -414,7 +413,7 @@ mod tests {
     #[test]
     fn tokenize_next_takes_at_most_what_is_left() {
         let data = "élégant";
-        let mut tokenizer = new(data);
+        let mut tokenizer = Tokenizer::new(data);
         tokenizer.advance();
         tokenizer.advance();
         tokenizer.tokenize_next(15, Category::Keyword);
@@ -427,7 +426,7 @@ mod tests {
     #[test]
     fn consume_whitespace_handles_preexisting_noncategorized_chars() {
         let data = "e  ";
-        let mut tokenizer = new(data);
+        let mut tokenizer = Tokenizer::new(data);
         tokenizer.advance();
         tokenizer.consume_whitespace();
 
@@ -443,7 +442,7 @@ mod tests {
 
     #[test]
     fn tokens_returns_unprocessed_data_as_text_token() {
-        let tokenizer = new("luthor");
+        let tokenizer = Tokenizer::new("luthor");
 
         assert_eq!(
             tokenizer.tokens()[0],
@@ -453,7 +452,7 @@ mod tests {
 
     #[test]
     fn tokens_joins_advanced_data_with_unprocessed_data_as_text_token() {
-        let mut tokenizer = new("luthor");
+        let mut tokenizer = Tokenizer::new("luthor");
         tokenizer.advance();
 
         assert_eq!(
