@@ -80,6 +80,10 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
             tokenizer.tokenize_next(1, Category::Text);
             Some(StateFunction(initial_state))
         },
+        Some('@') => {
+            tokenizer.tokenize(Category::Text);
+            Some(StateFunction(identifier))
+        },
         Some('[') => {
             tokenizer.tokenize(Category::Identifier);
             tokenizer.tokenize_next(1, Category::Text);
@@ -417,6 +421,8 @@ mod tests {
             Token{ lexeme: "another_variable".to_string(), category: Category::Identifier },
             Token{ lexeme: "=".to_string(), category: Category::Text },
             Token{ lexeme: "1".to_string(), category: Category::Integer },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "@instance_variable".to_string(), category: Category::Identifier },
             Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "method_call".to_string(), category: Category::Call },
             Token{ lexeme: "(".to_string(), category: Category::Text },
