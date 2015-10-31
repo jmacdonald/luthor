@@ -58,7 +58,7 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
         tokenizer.tokenize_next(2, Category::Text);
 
         return Some(StateFunction(initial_state))
-    } else if tokenizer.starts_with_lexeme("//") {
+    } else if tokenizer.has_prefix("//") {
         return Some(StateFunction(comment))
     }
 
