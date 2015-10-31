@@ -7,7 +7,6 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     match tokenizer.current_char() {
         Some(c) => {
             if tokenizer.has_prefix("</") {
-                tokenizer.tokenize(Category::Identifier);
                 tokenizer.tokenize_next(2, Category::Text);
                 return Some(StateFunction(inside_tag))
             }
@@ -195,6 +194,7 @@ mod tests {
             Token{ lexeme: "=".to_string(), category: Category::Operator },
             Token{ lexeme: "\"value\"".to_string(), category: Category::String },
             Token{ lexeme: ">".to_string(), category: Category::Text },
+            Token{ lexeme: "text".to_string(), category: Category::Text },
             Token{ lexeme: "</".to_string(), category: Category::Text },
             Token{ lexeme: "tag_with_attribute".to_string(), category: Category::Identifier },
             Token{ lexeme: ">".to_string(), category: Category::Text },

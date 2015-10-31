@@ -1,4 +1,4 @@
 <tag>
-  <tag_with_attribute attribute="value"></tag_with_attribute>
+  <tag_with_attribute attribute="value">text</tag_with_attribute>
   <self_closing_tag />
 </tag>
