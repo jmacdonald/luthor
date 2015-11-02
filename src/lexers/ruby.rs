@@ -8,6 +8,14 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
         tokenizer.tokenize_next(5, Category::Keyword);
         tokenizer.states.push(StateFunction(identifier));
         return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("module") {
+        tokenizer.tokenize_next(6, Category::Keyword);
+        tokenizer.states.push(StateFunction(identifier));
+        return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("include") {
+        tokenizer.tokenize_next(7, Category::Keyword);
+        tokenizer.states.push(StateFunction(identifier));
+        return Some(StateFunction(whitespace))
     } else if tokenizer.starts_with_lexeme("def") {
         tokenizer.tokenize_next(3, Category::Keyword);
         tokenizer.states.push(StateFunction(method));
@@ -18,6 +26,12 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     } else if tokenizer.starts_with_lexeme("if") {
         tokenizer.tokenize_next(2, Category::Keyword);
         return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("elsif") {
+        tokenizer.tokenize_next(5, Category::Keyword);
+        return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("else") {
+        tokenizer.tokenize_next(4, Category::Keyword);
+        return Some(StateFunction(whitespace))
     } else if tokenizer.starts_with_lexeme("end") {
         tokenizer.tokenize_next(3, Category::Keyword);
         return Some(StateFunction(initial_state))
@@ -26,6 +40,21 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
         return Some(StateFunction(initial_state))
     } else if tokenizer.starts_with_lexeme("false") {
         tokenizer.tokenize_next(5, Category::Boolean);
+        return Some(StateFunction(initial_state))
+    } else if tokenizer.starts_with_lexeme("nil") {
+        tokenizer.tokenize_next(3, Category::Literal);
+        return Some(StateFunction(initial_state))
+    } else if tokenizer.starts_with_lexeme("private") {
+        tokenizer.tokenize_next(7, Category::Keyword);
+        return Some(StateFunction(initial_state))
+    } else if tokenizer.starts_with_lexeme("begin") {
+        tokenizer.tokenize_next(5, Category::Keyword);
+        return Some(StateFunction(initial_state))
+    } else if tokenizer.starts_with_lexeme("rescue") {
+        tokenizer.tokenize_next(6, Category::Keyword);
+        return Some(StateFunction(initial_state))
+    } else if tokenizer.starts_with_lexeme("raise") {
+        tokenizer.tokenize_next(5, Category::Keyword);
         return Some(StateFunction(initial_state))
     }
 
@@ -387,10 +416,22 @@ mod tests {
         let data = include_str!("../../test_data/ruby.rb");
         let tokens = lex(data);
         let expected_tokens = vec![
+            Token{ lexeme: "module".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "RubyModule".to_string(), category: Category::Identifier },
+            Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "end".to_string(), category: Category::Keyword },
+            Token{ lexeme: "\n\n".to_string(), category: Category::Whitespace },
             Token{ lexeme: "class".to_string(), category: Category::Keyword },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "Ruby".to_string(), category: Category::Identifier },
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "include".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "RubyModule".to_string(), category: Category::Identifier },
+            Token{ lexeme: "\n\n  ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "private".to_string(), category: Category::Keyword },
+            Token{ lexeme: "\n\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "def".to_string(), category: Category::Keyword },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "method".to_string(), category: Category::Method },
@@ -398,6 +439,32 @@ mod tests {
             Token{ lexeme: "argument".to_string(), category: Category::Identifier },
             Token{ lexeme: ")".to_string(), category: Category::Text },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "begin".to_string(), category: Category::Keyword },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "if".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "true".to_string(), category: Category::Boolean },
+            Token{ lexeme: "\n        ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "\"true\"".to_string(), category: Category::String },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "elsif".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "false".to_string(), category: Category::Boolean },
+            Token{ lexeme: "\n        ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "\"false\"".to_string(), category: Category::String },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "else".to_string(), category: Category::Keyword },
+            Token{ lexeme: "\n        ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "nil".to_string(), category: Category::Literal },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "end".to_string(), category: Category::Keyword },
+            Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "rescue".to_string(), category: Category::Keyword },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "raise".to_string(), category: Category::Keyword },
+            Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "end".to_string(), category: Category::Keyword },
+            Token{ lexeme: "\n\n    ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "# comment".to_string(), category: Category::Comment },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "[".to_string(), category: Category::Text },

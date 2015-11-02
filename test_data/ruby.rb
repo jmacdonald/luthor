@@ -1,5 +1,24 @@
+module RubyModule
+end
+
 class Ruby
+  include RubyModule
+
+  private
+
   def method(argument)
+    begin
+      if true
+        "true"
+      elsif false
+        "false"
+      else
+        nil
+      end
+    rescue
+      raise
+    end
+
     # comment
     ["ruby"].each do |string|
       variable = 'string'
