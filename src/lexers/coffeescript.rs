@@ -4,7 +4,11 @@ use token::{Category, Token};
 use tokenizer::{Tokenizer, StateFunction};
 
 fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
-    if tokenizer.starts_with_lexeme("if") {
+    if tokenizer.starts_with_lexeme("class") {
+        tokenizer.tokenize_next(5, Category::Keyword);
+        tokenizer.consume_whitespace();
+        return Some(StateFunction(identifier))
+    } else if tokenizer.starts_with_lexeme("if") {
         tokenizer.tokenize_next(2, Category::Keyword);
         return Some(StateFunction(whitespace))
     } else if tokenizer.starts_with_lexeme("else") {
@@ -75,10 +79,14 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
             tokenizer.tokenize_next(1, Category::Keyword);
             Some(StateFunction(initial_state))
         },
+        Some('@') => {
+            tokenizer.advance();
+            Some(StateFunction(identifier))
+        },
         Some(':') => {
             if tokenizer.starts_with_lexeme(":") {
+                tokenizer.advance();
                 tokenizer.tokenize(Category::Literal);
-                tokenizer.tokenize_next(1, Category::Text);
                 tokenizer.consume_whitespace();
                 Some(StateFunction(initial_state))
             } else {
@@ -322,27 +330,33 @@ mod tests {
         let data = include_str!("../../test_data/data.coffee");
         let tokens = lex(data);
         let expected_tokens = vec![
+            Token{ lexeme: "class".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "Coffee".to_string(), category: Category::Identifier },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "data".to_string(), category: Category::Identifier },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "=".to_string(), category: Category::Text },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "\"string\"".to_string(), category: Category::String },
-            Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "more_data".to_string(), category: Category::Identifier },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "@data".to_string(), category: Category::Identifier },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "=".to_string(), category: Category::Text },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "'string'".to_string(), category: Category::String },
-            Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "key:".to_string(), category: Category::Literal },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "# comment".to_string(), category: Category::Comment },
-            Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "###\n multi-line comment\n###".to_string(), category: Category::Comment },
-            Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "###\n  multi-line comment\n  ###".to_string(), category: Category::Comment },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "$".to_string(), category: Category::Keyword },
             Token{ lexeme: "(".to_string(), category: Category::Text },
             Token{ lexeme: "'.class'".to_string(), category: Category::String },
             Token{ lexeme: ")".to_string(), category: Category::Text },
-            Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
         ];
 
         for (index, token) in tokens.iter().enumerate() {

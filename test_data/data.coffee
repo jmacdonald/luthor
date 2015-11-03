@@ -1,7 +1,9 @@
-data = "string"
-more_data = 'string'
-# comment
-###
- multi-line comment
-###
-$('.class')
+class Coffee
+  data = "string"
+  @data = 'string'
+  key:
+  # comment
+  ###
+  multi-line comment
+  ###
+  $('.class')
