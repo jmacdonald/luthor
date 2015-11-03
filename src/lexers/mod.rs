@@ -1,4 +1,5 @@
 //! Pre-built lexers for various languages/formats.
+pub mod coffeescript;
 pub mod javascript;
 pub mod json;
 pub mod xml;
