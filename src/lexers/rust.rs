@@ -270,7 +270,7 @@ fn identifier(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
                     tokenizer.tokenize(Category::Identifier);
                     Some(StateFunction(initial_state))
                 },
-                '|' | '(' | ')' | '-' | ';' => {
+                '|' | '(' | ')' | '-' | ';' | '{' | '}' => {
                     tokenizer.tokenize(Category::Identifier);
                     tokenizer.tokenize_next(1, Category::Text);
                     Some(StateFunction(initial_state))
