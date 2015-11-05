@@ -223,7 +223,9 @@ impl<'a> Tokenizer<'a> {
         // advance it to check for equality without affecting the original.
         let data_iter = self.data.clone();
 
-        self.has_prefix(lexeme) && match data_iter.skip(lexeme.len()).next() {
+        self.current_token.is_empty() &&
+        self.has_prefix(lexeme) &&
+        match data_iter.skip(lexeme.len()).next() {
             Some(' ') | Some('\n') | Some(',') => true,
             None => true,
             _ => false
@@ -459,5 +461,13 @@ mod tests {
             tokenizer.tokens()[0],
             Token{ lexeme: "luthor".to_string(), category: Category::Text }
         );
+    }
+
+    #[test]
+    fn starts_with_lexeme_returns_false_if_the_tokenizer_has_been_advanced() {
+        let mut tokenizer = Tokenizer::new("luthor");
+        tokenizer.advance();
+
+        assert!(!tokenizer.starts_with_lexeme("uthor"));
     }
 }
