@@ -16,6 +16,10 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
         tokenizer.tokenize_next(7, Category::Keyword);
         tokenizer.states.push(StateFunction(identifier));
         return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("extend") {
+        tokenizer.tokenize_next(6, Category::Keyword);
+        tokenizer.states.push(StateFunction(identifier));
+        return Some(StateFunction(whitespace))
     } else if tokenizer.starts_with_lexeme("def") {
         tokenizer.tokenize_next(3, Category::Keyword);
         tokenizer.states.push(StateFunction(method));
@@ -25,6 +29,9 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
         return Some(StateFunction(whitespace))
     } else if tokenizer.starts_with_lexeme("if") {
         tokenizer.tokenize_next(2, Category::Keyword);
+        return Some(StateFunction(whitespace))
+    } else if tokenizer.starts_with_lexeme("unless") {
+        tokenizer.tokenize_next(6, Category::Keyword);
         return Some(StateFunction(whitespace))
     } else if tokenizer.starts_with_lexeme("elsif") {
         tokenizer.tokenize_next(5, Category::Keyword);
@@ -429,6 +436,10 @@ mod tests {
             Token{ lexeme: "include".to_string(), category: Category::Keyword },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "RubyModule".to_string(), category: Category::Identifier },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "extend".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "RubyModule".to_string(), category: Category::Identifier },
             Token{ lexeme: "\n\n  ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "private".to_string(), category: Category::Keyword },
             Token{ lexeme: "\n\n  ".to_string(), category: Category::Whitespace },
@@ -440,6 +451,8 @@ mod tests {
             Token{ lexeme: ")".to_string(), category: Category::Text },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "begin".to_string(), category: Category::Keyword },
+            Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "unless".to_string(), category: Category::Keyword },
             Token{ lexeme: "\n      ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "if".to_string(), category: Category::Keyword },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },

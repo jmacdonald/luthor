@@ -3,11 +3,13 @@ end
 
 class Ruby
   include RubyModule
+  extend RubyModule
 
   private
 
   def method(argument)
     begin
+      unless
       if true
         "true"
       elsif false
