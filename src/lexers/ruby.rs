@@ -123,7 +123,7 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
             Some(StateFunction(initial_state))
         },
         Some(':') => {
-            if tokenizer.starts_with_lexeme(":") {
+            if tokenizer.has_prefix(": ") {
                 tokenizer.tokenize(Category::Literal);
                 tokenizer.tokenize_next(1, Category::Text);
                 tokenizer.consume_whitespace();
