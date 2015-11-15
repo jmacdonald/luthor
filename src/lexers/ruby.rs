@@ -251,6 +251,16 @@ fn argument(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     match tokenizer.current_char() {
         Some(c) => {
             match c {
+                '"' => {
+                    tokenizer.tokenize(Category::Text);
+                    tokenizer.advance();
+                    Some(StateFunction(inside_string))
+                },
+                '\'' => {
+                    tokenizer.tokenize(Category::Text);
+                    tokenizer.advance();
+                    Some(StateFunction(inside_single_quote_string))
+                },
                 ' ' | '\n' => {
                     tokenizer.tokenize(Category::Identifier);
                     tokenizer.states.push(StateFunction(argument));
@@ -448,6 +458,9 @@ mod tests {
             Token{ lexeme: "method".to_string(), category: Category::Method },
             Token{ lexeme: "(".to_string(), category: Category::Text },
             Token{ lexeme: "argument".to_string(), category: Category::Identifier },
+            Token{ lexeme: ",".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "\"string\"".to_string(), category: Category::String },
             Token{ lexeme: ")".to_string(), category: Category::Text },
             Token{ lexeme: "\n    ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "begin".to_string(), category: Category::Keyword },

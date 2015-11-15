@@ -7,7 +7,7 @@ class Ruby
 
   private
 
-  def method(argument)
+  def method(argument, "string")
     begin
       unless
       if true
