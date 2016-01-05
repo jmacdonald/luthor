@@ -58,6 +58,10 @@ fn initial_state(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
         tokenizer.tokenize_next(2, Category::Text);
 
         return Some(StateFunction(initial_state))
+    } else if tokenizer.has_prefix("#[") {
+        tokenizer.tokenize(Category::Text);
+
+        return Some(StateFunction(attribute))
     } else if tokenizer.has_prefix("//") {
         return Some(StateFunction(comment))
     }
@@ -357,6 +361,29 @@ fn integer(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
     }
 }
 
+fn attribute(tokenizer: &mut Tokenizer) -> Option<StateFunction> {
+    match tokenizer.current_char() {
+        Some(c) => {
+            match c {
+                ']' => {
+                    tokenizer.advance();
+                    tokenizer.tokenize(Category::Identifier);
+                    Some(StateFunction(initial_state))
+                },
+                _ => {
+                    tokenizer.advance();
+                    Some(StateFunction(attribute))
+                }
+            }
+        }
+
+        None => {
+            tokenizer.tokenize(Category::Identifier);
+            None
+        }
+    }
+}
+
 pub fn lex(data: &str) -> Vec<Token> {
     let mut tokenizer = Tokenizer::new(data);
     let mut state_function = StateFunction(initial_state);
@@ -396,6 +423,8 @@ mod tests {
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "luthor".to_string(), category: Category::Identifier },
             Token{ lexeme: ";".to_string(), category: Category::Text },
+            Token{ lexeme: "\n\n".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "#[attr]".to_string(), category: Category::Identifier },
             Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
             Token{ lexeme: "pub".to_string(), category: Category::Keyword },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
@@ -431,6 +460,7 @@ mod tests {
             Token{ lexeme: "{}".to_string(), category: Category::Text },
             Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
             Token{ lexeme: "}".to_string(), category: Category::Text },
+            Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
         ];
 
         for (index, token) in tokens.iter().enumerate() {
